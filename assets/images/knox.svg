@@ -1,0 +1,48 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background circle for contrast -->
+    <circle cx="100" cy="100" r="95" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+
+    <!-- Main vault door -->
+    <circle cx="100" cy="100" r="70" fill="#2c3e50" stroke="#34495e" stroke-width="3"/>
+
+    <!-- Vault door inner ring -->
+    <circle cx="100" cy="100" r="60" fill="#34495e" stroke="#4a5f7a" stroke-width="2"/>
+
+    <!-- Central locking mechanism -->
+    <circle cx="100" cy="100" r="25" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+
+    <!-- Key symbol in center -->
+    <g transform="translate(100, 100)">
+        <!-- Key shaft -->
+        <rect x="-10" y="-2" width="20" height="4" fill="#f39c12" rx="2"/>
+        <!-- Key head -->
+        <circle cx="-10" cy="0" r="8" fill="#f39c12" stroke="#e67e22" stroke-width="1"/>
+        <!-- Key teeth -->
+        <rect x="10" y="-2" width="3" height="6" fill="#f39c12"/>
+        <rect x="14" y="-2" width="3" height="4" fill="#f39c12"/>
+    </g>
+
+    <!-- Vault spokes/handles -->
+    <g transform="translate(100, 100)">
+        <!-- Spoke 1 -->
+        <rect x="-40" y="-3" width="15" height="6" fill="#95a5a6" rx="3"/>
+        <!-- Spoke 2 -->
+        <rect x="25" y="-3" width="15" height="6" fill="#95a5a6" rx="3"/>
+        <!-- Spoke 3 -->
+        <rect x="-3" y="-40" width="6" height="15" fill="#95a5a6" rx="3"/>
+        <!-- Spoke 4 -->
+        <rect x="-3" y="25" width="6" height="15" fill="#95a5a6" rx="3"/>
+    </g>
+
+    <!-- Decorative bolts around the vault -->
+    <circle cx="100" cy="40" r="3" fill="#7f8c8d"/>
+    <circle cx="160" cy="100" r="3" fill="#7f8c8d"/>
+    <circle cx="100" cy="160" r="3" fill="#7f8c8d"/>
+    <circle cx="40" cy="100" r="3" fill="#7f8c8d"/>
+
+    <!-- Corner bolts -->
+    <circle cx="129" cy="71" r="2" fill="#7f8c8d"/>
+    <circle cx="129" cy="129" r="2" fill="#7f8c8d"/>
+    <circle cx="71" cy="129" r="2" fill="#7f8c8d"/>
+    <circle cx="71" cy="71" r="2" fill="#7f8c8d"/>
+</svg>
