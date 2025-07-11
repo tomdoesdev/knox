@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/tomdoesdev/knox/internal/cli"
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands"
 	"log/slog"
 
 	"log"
@@ -13,7 +13,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	cmd := cli.NewRootCommand()
+	cmd := commands.NewRootCommand()
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
