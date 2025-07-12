@@ -1,4 +1,4 @@
-# https://just.systems
+#!/usr/bin/env just --justfile
 run app="knox" *args="":
   go run ./cmd/{{app}} {{args}}
 
@@ -6,7 +6,7 @@ build:
   go build -o ./bin ./cmd/...
 
 test:
-  go test ./...
+  go test -v ./...
 
 cover:
   go test ./...

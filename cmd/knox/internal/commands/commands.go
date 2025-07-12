@@ -2,7 +2,9 @@ package commands
 
 import (
 	"context"
+
 	"github.com/tomdoesdev/knox/internal/errors"
+	"github.com/tomdoesdev/knox/internal/secrets"
 	"github.com/urfave/cli/v3"
 )
 
@@ -56,4 +58,13 @@ func NewRootCommand() *cli.Command {
 	}
 
 	return cmd
+}
+
+func execInit(ctx context.Context, cmd *cli.Command) error {
+	initializer := secrets.NewVaultInitializer()
+	err := initializer.NewVault(&secrets.VaultOptions{Path: "."})
+	if err != nil {
+		return err
+	}
+	return nil
 }
