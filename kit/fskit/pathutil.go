@@ -21,9 +21,15 @@ func ExpandHome(path string) string {
 
 	return path
 }
-func Exists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil || errors.Is(err, os.ErrNotExist)
+func Exists(path string) (bool, error) {
+	_, err := os.Lstat(path)
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
 }
 
 func UserHomeDir() string {

@@ -1,52 +1,19 @@
-package secrets
+package vault
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"path"
 
 	_ "github.com/mattn/go-sqlite3"
-	knoxerr "github.com/tomdoesdev/knox/internal/errors"
+	"github.com/tomdoesdev/knox/kit/errkit"
 )
-
-type SecretStorer interface {
-	Set(key, value string) error
-	Get(key string) (string, error)
-	Del(key string) error
-}
 
 type SqliteStore struct {
 }
 
-func NewSqliteStore() *SqliteStore {
-	return &SqliteStore{}
-}
-
-func (p *SqliteStore) NewVault(opts *VaultOptions) error {
-	fmt.Println(opts.Path)
-	info, err := os.Stat(path.Join(opts.Path, "knox.db"))
-
-	fmt.Printf("%#v\n", info)
-	if err != nil {
-		switch {
-		case errors.Is(err, os.ErrNotExist):
-			slog.Info("creating a new sqlite store")
-			err := createVaultFile(opts)
-			if err != nil {
-				return err
-			}
-		default:
-			return err
-		}
-	}
-
-	return nil
-}
-
-func createVaultFile(opts *VaultOptions) error {
+func createVaultFile(opts *Options) error {
 	fmt.Printf("Creating vault file at %s\n", path.Join(opts.Path, "knox.db"))
 	db, err := sql.Open("sqlite3", path.Join(opts.Path, "knox.db"))
 	if err != nil {
@@ -64,7 +31,7 @@ func createVaultFile(opts *VaultOptions) error {
 		version INTEGER
 	);
 
-	CREATE TABLE secrets (
+	CREATE TABLE vault (
 		id INTEGER PRIMARY KEY,
 		namespace TEXT NOT NULL DEFAULT 'global',
 		key TEXT NOT NULL,
@@ -79,13 +46,13 @@ func createVaultFile(opts *VaultOptions) error {
 }
 
 func (p *SqliteStore) Set(key, value string) error {
-	return knoxerr.ErrNotImplemented
+	return errkit.ErrNotImplemented
 }
 
 func (p *SqliteStore) Get(key string) (string, error) {
-	return "", knoxerr.ErrNotImplemented
+	return "", errkit.ErrNotImplemented
 }
 
 func (p *SqliteStore) Del(key string) error {
-	return knoxerr.ErrNotImplemented
+	return errkit.ErrNotImplemented
 }
