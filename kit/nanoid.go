@@ -61,15 +61,6 @@ func Generate(alphabet string, size int) (string, error) {
 	}
 }
 
-// MustGenerate is the same as Generate but panics on error.
-func MustGenerate(alphabet string, size int) string {
-	id, err := Generate(alphabet, size)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
 // NewNanoid generates secure URL-friendly unique ID.
 // Accepts optional parameter - length of the ID to be generated (21 by default).
 func NewNanoid(l ...int) (string, error) {
