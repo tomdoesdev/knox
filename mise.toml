@@ -1,4 +1,3 @@
 [tools]
 go = "latest"
 golangci-lint = "latest"
-"go:github.com/sqlc-dev/sqlc/cmd/sqlc" = {version = "latest"}
