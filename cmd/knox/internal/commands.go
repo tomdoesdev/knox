@@ -2,8 +2,6 @@ package internal
 
 import (
 	"context"
-	"errors"
-	"log/slog"
 
 	"github.com/tomdoesdev/knox/internal/config"
 	"github.com/tomdoesdev/knox/kit/errkit"
@@ -17,14 +15,8 @@ func NewKnoxCommand(appConfig *config.ApplicationConfig) *cli.Command {
 			Aliases: nil,
 			Usage:   "initialise new knox project vault",
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				err := Initialize(appConfig)
+				return Initialize(appConfig)
 
-				if errors.Is(err, ErrAlreadyInitialized) {
-					slog.Warn("knox is already initialized")
-					return nil
-				}
-
-				return err
 			},
 		}
 		cmdStatus = &cli.Command{

@@ -44,16 +44,16 @@ func createSqliteStore(conf *config.ApplicationConfig) error {
 	}
 
 	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return fmt.Errorf("createSqliteStore: sql.Open:  %w", err)
-	}
+
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
-			slog.Error("createSqliteStore: defer db.Close", err)
+			slog.Error("createSqliteStore: defer db.Close", "error", err)
 		}
 	}(db)
-
+	if err != nil {
+		return fmt.Errorf("createSqliteStore: sql.Open:  %w", err)
+	}
 	_, err = db.Exec(schema)
 	if err != nil {
 		return fmt.Errorf("createSqliteStore: execSchema: %w", err)
