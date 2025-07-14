@@ -1,7 +1,13 @@
 package vault
 
 import (
+	"fmt"
+	"log/slog"
+	"os"
+
+	"github.com/tomdoesdev/knox/internal/config"
 	"github.com/tomdoesdev/knox/kit/errkit"
+	"github.com/tomdoesdev/knox/kit/fskit"
 )
 
 type Options struct {
@@ -38,4 +44,28 @@ func (s *vaultImpl) Del(key string) error {
 }
 func (s *vaultImpl) Clear() error {
 	return errkit.ErrNotImplemented
+}
+
+func Create(conf *config.ApplicationConfig) error {
+	exists, err := fskit.Exists(conf.VaultDir)
+	if err != nil {
+		return fmt.Errorf("knox.init.createKnoxVault: %w", err)
+	}
+
+	if exists {
+		slog.Warn("user vault already exists")
+		return nil
+	}
+
+	err = os.MkdirAll(conf.VaultDir, 0600)
+	if err != nil {
+		return fmt.Errorf("knox.init.createKnoxVault.mkDir: %w", err)
+	}
+
+	err = initSqliteVault(conf)
+	if err != nil {
+		return fmt.Errorf("knox.init.createKnoxVault: %w", err)
+	}
+
+	return nil
 }

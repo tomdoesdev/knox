@@ -2,6 +2,7 @@ package fskit
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,7 +30,7 @@ func Exists(path string) (bool, error) {
 	if errors.Is(err, os.ErrNotExist) {
 		return false, nil
 	}
-	return false, err
+	return false, fmt.Errorf("pathutil: stat %q: %w", path, err)
 }
 
 func UserHomeDir() string {

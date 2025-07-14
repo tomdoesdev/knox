@@ -2,20 +2,19 @@ package vault
 
 import (
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"path"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tomdoesdev/knox/internal/config"
 	"github.com/tomdoesdev/knox/kit/errkit"
 )
 
 type SqliteStore struct {
 }
 
-func createVaultFile(opts *Options) error {
-	fmt.Printf("Creating vault file at %s\n", path.Join(opts.Path, "knox.db"))
-	db, err := sql.Open("sqlite3", path.Join(opts.Path, "knox.db"))
+func initSqliteVault(conf *config.ApplicationConfig) error {
+	db, err := sql.Open("sqlite3", path.Join(conf.VaultDir, "knox.db"))
 	if err != nil {
 		return err
 	}
@@ -33,15 +32,15 @@ func createVaultFile(opts *Options) error {
 
 	CREATE TABLE vault (
 		id INTEGER PRIMARY KEY,
-		namespace TEXT NOT NULL DEFAULT 'global',
+		namespace TEXT NOT NULL DEFAULT 'default',
 		key TEXT NOT NULL,
+		value TEXT NOT NULL,
 		description TEXT NOT NULL DEFAULT ''
 	)`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		return err
 	}
-	slog.Info(sqlStmt)
 	return nil
 }
 
