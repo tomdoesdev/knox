@@ -1,13 +1,15 @@
-package commands
+package internal
 
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path"
 
 	"github.com/tomdoesdev/knox/internal/config"
+	"github.com/tomdoesdev/knox/internal/vault"
 	"github.com/tomdoesdev/knox/kit/fskit"
 )
 
@@ -15,19 +17,31 @@ var (
 	ErrAlreadyInitialized = errors.New("knox.json already initialized")
 )
 
-func Init() error {
+func Initialize(conf *config.ApplicationConfig) error {
+
+	err := vault.EnsureVaultExists(conf)
+
+	err = createProjectFile()
+	if err != nil {
+		return fmt.Errorf("knox.init.createProjectFile: %w", err)
+	}
+
+	return nil
+}
+
+func createProjectFile() error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
 	confpath := path.Join(cwd, "knox.json")
-	slog.Info(confpath)
+
 	if exists, _ := fskit.Exists(confpath); exists {
 		return ErrAlreadyInitialized
 	}
-
-	c, err := config.NewKnoxConfig()
+	slog.Info("creating project file", "path", confpath)
+	c, err := config.NewProjectConfig()
 	if err != nil {
 		return err
 	}
@@ -43,5 +57,4 @@ func Init() error {
 	}
 
 	return nil
-
 }
