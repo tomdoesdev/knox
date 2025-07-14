@@ -2,11 +2,10 @@ package config
 
 import (
 	"fmt"
-	"log/slog"
 	"path"
 
 	"github.com/adrg/xdg"
-	"github.com/tomdoesdev/knox/kit"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 type ProjectConfig struct {
@@ -14,7 +13,8 @@ type ProjectConfig struct {
 }
 
 func NewProjectConfig() (*ProjectConfig, error) {
-	pid, err := kit.NewNanoid()
+
+	pid, err := gonanoid.New(12)
 	if err != nil {
 		return nil, fmt.Errorf("config: generating project id: %w", err)
 	}
@@ -27,7 +27,9 @@ func NewProjectConfig() (*ProjectConfig, error) {
 }
 
 type ApplicationConfig struct {
-	VaultDir string `json:"vault_dir"`
+	VaultDir      string `json:"vault_dir"`
+	VaultFileName string `json:"vault_file_name"`
+	VaultPath     string `json:"vault_path"`
 }
 
 func (conf *ApplicationConfig) String() string {
@@ -36,13 +38,15 @@ func (conf *ApplicationConfig) String() string {
 
 func NewApplicationConfig() ApplicationConfig {
 
+	fileName := "knox.vault"
 	vaultDir := path.Join(xdg.DataHome, "knox")
+	vaultPath := path.Join(vaultDir, fileName)
 
 	conf := ApplicationConfig{
-		VaultDir: vaultDir,
+		VaultDir:      vaultDir,
+		VaultFileName: fileName,
+		VaultPath:     vaultPath,
 	}
-
-	slog.Info("config: creating new application config", "config", conf)
 
 	return conf
 }

@@ -19,7 +19,7 @@ var (
 
 func Initialize(conf *config.ApplicationConfig) error {
 
-	err := vault.Create(conf)
+	err := vault.EnsureVaultExists(conf)
 
 	err = createProjectFile()
 	if err != nil {
@@ -36,11 +36,11 @@ func createProjectFile() error {
 	}
 
 	confpath := path.Join(cwd, "knox.json")
-	slog.Info("creating project file", "path", confpath)
+
 	if exists, _ := fskit.Exists(confpath); exists {
 		return ErrAlreadyInitialized
 	}
-
+	slog.Info("creating project file", "path", confpath)
 	c, err := config.NewProjectConfig()
 	if err != nil {
 		return err
