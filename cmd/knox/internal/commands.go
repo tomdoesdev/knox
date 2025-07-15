@@ -9,52 +9,55 @@ import (
 )
 
 func NewKnoxCommand(appConfig *config.ApplicationConfig) *cli.Command {
-	var (
-		cmdInit = &cli.Command{
-			Name:    "init",
-			Aliases: nil,
-			Usage:   "initialise new knox project vault",
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				return Initialize(appConfig)
-
-			},
-		}
-		cmdStatus = &cli.Command{
-			Name:    "status",
-			Aliases: nil,
-			Usage:   "show status of the current knox project vault",
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				return errkit.ErrNotImplemented
-			},
-		}
-		cmdSet = &cli.Command{
-			Name:    "set",
-			Aliases: nil,
-			Usage:   "set the value of a secret in the vault",
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				return errkit.ErrNotImplemented
-			},
-		}
-
-		cmdRemove = &cli.Command{
-			Name:    "remove",
-			Aliases: nil,
-			Usage:   "remove a secret from the vault",
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				return errkit.ErrNotImplemented
-			},
-		}
-	)
-
 	return &cli.Command{
 		Name:        "knox",
 		Usage:       "manage local development vault",
 		Description: "local development vault manager",
 		Commands: []*cli.Command{
-			cmdInit,
-			cmdStatus,
-			cmdSet,
-			cmdRemove,
+			newInitCommand(appConfig),
+			newStatusCommand(appConfig),
+			newSetCommand(appConfig),
+			newRemoveCommand(appConfig),
+		},
+	}
+}
+
+func newInitCommand(appConfig *config.ApplicationConfig) *cli.Command {
+	return &cli.Command{
+		Name:  "init",
+		Usage: "initialise new knox project vault",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return Initialize(appConfig)
+		},
+	}
+}
+
+func newStatusCommand(appConfig *config.ApplicationConfig) *cli.Command {
+	return &cli.Command{
+		Name:  "status",
+		Usage: "show status of the current knox project vault",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return errkit.ErrNotImplemented
+		},
+	}
+}
+
+func newSetCommand(appConfig *config.ApplicationConfig) *cli.Command {
+	return &cli.Command{
+		Name:  "set",
+		Usage: "set the value of a secret in the vault",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return errkit.ErrNotImplemented
+		},
+	}
+}
+
+func newRemoveCommand(appConfig *config.ApplicationConfig) *cli.Command {
+	return &cli.Command{
+		Name:  "remove",
+		Usage: "remove a secret from the vault",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return errkit.ErrNotImplemented
 		},
 	}
 }
