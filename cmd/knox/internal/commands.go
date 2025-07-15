@@ -3,36 +3,37 @@ package internal
 import (
 	"context"
 
-	"github.com/tomdoesdev/knox/internal/config"
+	"github.com/tomdoesdev/knox/internal/project"
 	"github.com/tomdoesdev/knox/kit/errkit"
 	"github.com/urfave/cli/v3"
 )
 
-func NewKnoxCommand(appConfig *config.ApplicationConfig) *cli.Command {
+func NewKnoxCommand(p *project.Project) *cli.Command {
 	return &cli.Command{
 		Name:        "knox",
 		Usage:       "manage local development vault",
 		Description: "local development vault manager",
+
 		Commands: []*cli.Command{
-			newInitCommand(appConfig),
-			newStatusCommand(appConfig),
-			newSetCommand(appConfig),
-			newRemoveCommand(appConfig),
+			newInitCommand(p),
+			newStatusCommand(p),
+			newSetCommand(p),
+			newRemoveCommand(p),
 		},
 	}
 }
 
-func newInitCommand(appConfig *config.ApplicationConfig) *cli.Command {
+func newInitCommand(p *project.Project) *cli.Command {
 	return &cli.Command{
 		Name:  "init",
 		Usage: "initialise new knox project vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return Initialize(appConfig)
+			return Initialize()
 		},
 	}
 }
 
-func newStatusCommand(appConfig *config.ApplicationConfig) *cli.Command {
+func newStatusCommand(p *project.Project) *cli.Command {
 	return &cli.Command{
 		Name:  "status",
 		Usage: "show status of the current knox project vault",
@@ -42,17 +43,17 @@ func newStatusCommand(appConfig *config.ApplicationConfig) *cli.Command {
 	}
 }
 
-func newSetCommand(appConfig *config.ApplicationConfig) *cli.Command {
+func newSetCommand(p *project.Project) *cli.Command {
 	return &cli.Command{
 		Name:  "set",
 		Usage: "set the value of a secret in the vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return errkit.ErrNotImplemented
+			return SetSecret(cmd, p)
 		},
 	}
 }
 
-func newRemoveCommand(appConfig *config.ApplicationConfig) *cli.Command {
+func newRemoveCommand(p *project.Project) *cli.Command {
 	return &cli.Command{
 		Name:  "remove",
 		Usage: "remove a secret from the vault",
