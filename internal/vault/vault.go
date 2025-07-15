@@ -1,41 +1,72 @@
 package vault
 
 import (
+	"database/sql"
+	"fmt"
+	"os"
+	"path"
+
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/tomdoesdev/knox/kit/errkit"
+	"github.com/tomdoesdev/knox/kit/fskit"
 )
 
-type Options struct {
-	Path string
-	Name string
-}
-type Vault interface {
-	Set(key, value string) error
-	Get(key string) (string, error)
-	Del(key string) error
-	Clear() error
-}
+const schema = `
+CREATE TABLE vault (
+id INTEGER PRIMARY KEY,
+project_id TEXT NOT NULL,
+key TEXT NOT NULL,
+value TEXT NOT NULL,
 
-func New(opts *Options) Vault {
-	//storePath := path.Join(opts.Path, "knox.db")
-	//
-	//if fskit.Exists(storePath) == false {
-	//
-	//}
+UNIQUE (project_id,key)
+)`
+
+func EnsureVaultExists(vPath string) error {
+	dirExists, err := fskit.Exists(path.Dir(vPath))
+	if err != nil {
+		return fmt.Errorf("vault:create:dirExists: %w", err)
+	}
+
+	vaultExists, err := fskit.Exists(vPath)
+
+	if err != nil {
+		return fmt.Errorf("vault:create:vaultExists: %w", err)
+	}
+
+	if !dirExists {
+		err = os.MkdirAll(vPath, 0600)
+		if err != nil {
+			return fmt.Errorf("vault:create:mkDir: %w", err)
+		}
+	}
+
+	if !vaultExists {
+		err = createSqliteStore(vPath)
+		if err != nil {
+			return fmt.Errorf("vault:create:createSqliteStore: %w", err)
+		}
+	}
+
 	return nil
 }
 
-type vaultImpl struct{}
+func createSqliteStore(vaultPath string) error {
+	exists, err := fskit.Exists(vaultPath)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("vault already exists %w", errkit.ErrAlreadyExists)
+	}
 
-func (s *vaultImpl) Set(key, value string) error {
-	return errkit.ErrNotImplemented
-}
-func (s *vaultImpl) Get(key string) (string, error) {
-	return "", errkit.ErrNotImplemented
-}
+	db, err := sql.Open("sqlite3", vaultPath)
 
-func (s *vaultImpl) Del(key string) error {
-	return errkit.ErrNotImplemented
-}
-func (s *vaultImpl) Clear() error {
-	return errkit.ErrNotImplemented
+	if err != nil {
+		return fmt.Errorf("createSqliteStore: sql.Open:  %w", err)
+	}
+	_, err = db.Exec(schema)
+	if err != nil {
+		return fmt.Errorf("createSqliteStore: execSchema: %w", err)
+	}
+	return nil
 }

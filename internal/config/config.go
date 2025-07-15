@@ -1,20 +1,32 @@
 package config
 
-import "github.com/tomdoesdev/knox/kit"
+import (
+	"fmt"
+	"path"
 
-type KnoxConfig struct {
-	ProjectID string `json:"project_id"`
+	"github.com/adrg/xdg"
+)
+
+type ApplicationConfig struct {
+	VaultDir      string `json:"vault_dir"`
+	VaultFileName string `json:"vault_file_name"`
+	VaultPath     string `json:"vault_path"`
 }
 
-func NewKnoxConfig() (*KnoxConfig, error) {
-	pid, err := kit.NewNanoid()
-	if err != nil {
-		return nil, err
+func (conf *ApplicationConfig) String() string {
+	return fmt.Sprintf("%+v", *conf)
+}
+
+func NewApplicationConfig() ApplicationConfig {
+	fileName := "knox.vault"
+	vaultDir := path.Join(xdg.DataHome, "knox")
+	vaultPath := path.Join(vaultDir, fileName)
+
+	conf := ApplicationConfig{
+		VaultDir:      vaultDir,
+		VaultFileName: fileName,
+		VaultPath:     vaultPath,
 	}
 
-	conf := KnoxConfig{
-		ProjectID: pid,
-	}
-
-	return &conf, nil
+	return conf
 }
