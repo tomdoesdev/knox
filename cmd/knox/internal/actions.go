@@ -1,27 +1,15 @@
 package internal
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
-	"os"
-	"path"
 
-	"github.com/tomdoesdev/knox/internal/config"
-	"github.com/tomdoesdev/knox/internal/vault"
-	"github.com/tomdoesdev/knox/kit/fskit"
+	"github.com/tomdoesdev/knox/internal/project"
+	"github.com/urfave/cli/v3"
 )
 
-var (
-	ErrAlreadyInitialized = errors.New("knox.json already initialized")
-)
-
-func Initialize(conf *config.ApplicationConfig) error {
-
-	err := vault.EnsureVaultExists(conf)
-
-	err = createProjectFile()
+func Initialize() error {
+	_, err := project.CreateFile()
 	if err != nil {
 		return fmt.Errorf("knox.init.createProjectFile: %w", err)
 	}
@@ -29,32 +17,20 @@ func Initialize(conf *config.ApplicationConfig) error {
 	return nil
 }
 
-func createProjectFile() error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
+func SetSecret(cmd *cli.Command, p *project.Project) error {
+	if cmd.Args().Len() != 2 {
+		return fmt.Errorf("expected 2 arguments, got %d", cmd.Args().Len())
 	}
 
-	confpath := path.Join(cwd, "knox.json")
+	key := cmd.Args().Get(0)
+	value := cmd.Args().Get(1)
 
-	if exists, _ := fskit.Exists(confpath); exists {
-		return ErrAlreadyInitialized
-	}
-	slog.Info("creating project file", "path", confpath)
-	c, err := config.NewProjectConfig()
-	if err != nil {
-		return err
+	err := p.WriteSecret(key, value)
+	if errors.Is(err, project.ErrSecretExists) {
+		fmt.Printf("secret already exists: %s\n", key)
+		return nil
 	}
 
-	jsonbytes, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return err
-	}
+	return err
 
-	err = os.WriteFile(confpath, jsonbytes, 0660)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

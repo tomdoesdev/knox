@@ -5,26 +5,7 @@ import (
 	"path"
 
 	"github.com/adrg/xdg"
-	gonanoid "github.com/matoous/go-nanoid/v2"
 )
-
-type ProjectConfig struct {
-	ProjectID string `json:"project_id"`
-}
-
-func NewProjectConfig() (*ProjectConfig, error) {
-
-	pid, err := gonanoid.New(12)
-	if err != nil {
-		return nil, fmt.Errorf("config: generating project id: %w", err)
-	}
-
-	conf := ProjectConfig{
-		ProjectID: pid,
-	}
-
-	return &conf, nil
-}
 
 type ApplicationConfig struct {
 	VaultDir      string `json:"vault_dir"`
@@ -37,7 +18,6 @@ func (conf *ApplicationConfig) String() string {
 }
 
 func NewApplicationConfig() ApplicationConfig {
-
 	fileName := "knox.vault"
 	vaultDir := path.Join(xdg.DataHome, "knox")
 	vaultPath := path.Join(vaultDir, fileName)

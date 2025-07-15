@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/adrg/xdg v0.5.3 // indirect
+	github.com/hashicorp/go-envparse v0.1.0 // indirect
 	github.com/matoous/go-nanoid/v2 v2.1.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 )
