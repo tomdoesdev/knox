@@ -11,6 +11,7 @@ import (
 	"github.com/adrg/xdg"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tomdoesdev/knox/internal/vault"
 	"github.com/tomdoesdev/knox/kit/fs"
 )
 
@@ -107,6 +108,14 @@ func load(confDir string) (*Project, error) {
 	err = json.Unmarshal(jsonbytes, &p)
 	if err != nil {
 		return nil, err
+	}
+
+	if p.VaultPath == "" {
+		dp := vault.DefaultPath()
+		slog.Debug("project.load: no vault_path found in configuration, using default",
+			slog.String("path", dp),
+		)
+		p.VaultPath = dp
 	}
 
 	return p, nil

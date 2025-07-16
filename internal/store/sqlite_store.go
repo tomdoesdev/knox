@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/tomdoesdev/knox/kit/sqlite"
 	"github.com/tomdoesdev/knox/pkg/secrets"
@@ -83,6 +84,10 @@ func (s *sqliteSecretStore) ensureDb() (*sql.DB, error) {
 }
 
 func NewSqlite(vaultPath, projectId string) secrets.SecretStore {
+	slog.Debug("knox.store.NewSqlite",
+		slog.String("vaultPath", vaultPath),
+		slog.String("projectId", projectId),
+	)
 	store := &sqliteSecretStore{
 		dbPath: vaultPath,
 		projId: projectId,
