@@ -9,7 +9,11 @@ A secure local development secrets manager for modern development workflows.
 
 ## Overview
 
-Knox provides a secure, project-based approach to managing sensitive configuration during development. Each project maintains its own encrypted vault of secrets, ensuring sensitive data never leaves your local environment.
+Knox provides a secure, project-based approach to managing sensitive configuration during development. Each project maintains its own encrypted vault of secrets, ensuring sensitive data never leaves your local environment. 
+
+Knox also provides a means to execute other applications with environment variables from a .env file. Knox will parse the .env file and replace any
+template calls to Secret with the appropriate, unencrypted secret.
+
 
 ## Features
 
@@ -52,7 +56,7 @@ knox set DATABASE_URL "postgresql://localhost:5432/myapp"
 knox set API_KEY "sk-1234567890abcdef"
 ```
 
-### Read Secrets
+### Run An Applicatiom
 
 ```bash
 knox get DATABASE_URL
