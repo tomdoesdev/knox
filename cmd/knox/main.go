@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/knox"
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands"
 	"github.com/tomdoesdev/knox/internal/config"
 	"github.com/tomdoesdev/knox/internal/vault"
 	"github.com/tomdoesdev/knox/kit/log"
@@ -36,7 +36,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmdRoot := knox.NewKnoxCommand(p)
+	cmdRoot := commands.NewKnoxCommand(p)
 
 	if err := cmdRoot.Run(context.Background(), os.Args); err != nil {
 		if errors.Is(err, project.ErrProjectExists) {

@@ -1,4 +1,4 @@
-package knox_status
+package commands
 
 import (
 	"context"

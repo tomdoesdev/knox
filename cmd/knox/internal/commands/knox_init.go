@@ -1,4 +1,4 @@
-package knox_init
+package commands
 
 import (
 	"context"

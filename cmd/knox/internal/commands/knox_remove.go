@@ -1,4 +1,4 @@
-package knox_remove
+package commands
 
 import (
 	"context"
