@@ -8,7 +8,6 @@ import (
 )
 
 type ApplicationConfig struct {
-	VaultDir      string `json:"vault_dir"`
 	VaultFileName string `json:"vault_file_name"`
 	VaultPath     string `json:"vault_path"`
 }
@@ -23,7 +22,6 @@ func NewApplicationConfig() ApplicationConfig {
 	vaultPath := path.Join(vaultDir, fileName)
 
 	conf := ApplicationConfig{
-		VaultDir:      vaultDir,
 		VaultFileName: fileName,
 		VaultPath:     vaultPath,
 	}

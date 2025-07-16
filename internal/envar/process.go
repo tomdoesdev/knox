@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrNoCommad      = errors.New("no command")
+	ErrNoCommand     = errors.New("no command")
 	ErrCommandFailed = errors.New("command failed to start")
 )
 
@@ -44,7 +44,7 @@ func NewEnvRunner(config Config) *EnvRunner {
 
 func (er *EnvRunner) Run(envVars EnvVars) error {
 	if len(er.config.Command) == 0 {
-		return ErrNoCommad
+		return ErrNoCommand
 	}
 
 	env := er.buildEnvironment(envVars)

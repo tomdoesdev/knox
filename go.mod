@@ -8,8 +8,13 @@ require (
 )
 
 require (
+	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	github.com/adrg/xdg v0.5.3 // indirect
+	github.com/danieljoos/wincred v1.2.2 // indirect
+	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/hashicorp/go-envparse v0.1.0 // indirect
 	github.com/matoous/go-nanoid/v2 v2.1.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
+	github.com/zalando/go-keyring v0.2.6 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/term v0.33.0 // indirect
 )

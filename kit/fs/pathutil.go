@@ -1,4 +1,4 @@
-package fskit
+package fs
 
 import (
 	"errors"

@@ -3,12 +3,12 @@ package vault
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/kit/errkit"
-	"github.com/tomdoesdev/knox/kit/fskit"
+	"github.com/tomdoesdev/knox/kit/fs"
 )
 
 const schema = `
@@ -21,27 +21,29 @@ value TEXT NOT NULL,
 UNIQUE (project_id,key)
 )`
 
-func EnsureVaultExists(vPath string) error {
-	dirExists, err := fskit.Exists(path.Dir(vPath))
+func EnsureVaultExists(vaultpath string) error {
+	dir := path.Dir(vaultpath)
+
+	dirExists, err := fs.Exists(dir)
 	if err != nil {
 		return fmt.Errorf("vault:create:dirExists: %w", err)
 	}
 
-	vaultExists, err := fskit.Exists(vPath)
+	vaultExists, err := fs.Exists(vaultpath)
 
 	if err != nil {
 		return fmt.Errorf("vault:create:vaultExists: %w", err)
 	}
 
 	if !dirExists {
-		err = os.MkdirAll(vPath, 0600)
+		err = os.MkdirAll(dir, 0600)
 		if err != nil {
 			return fmt.Errorf("vault:create:mkDir: %w", err)
 		}
 	}
 
 	if !vaultExists {
-		err = createSqliteStore(vPath)
+		err = createSqliteStore(vaultpath)
 		if err != nil {
 			return fmt.Errorf("vault:create:createSqliteStore: %w", err)
 		}
@@ -51,12 +53,13 @@ func EnsureVaultExists(vPath string) error {
 }
 
 func createSqliteStore(vaultPath string) error {
-	exists, err := fskit.Exists(vaultPath)
+	exists, err := fs.Exists(vaultPath)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("vault already exists %w", errkit.ErrAlreadyExists)
+		slog.Info("vault already exists", slog.String("path", vaultPath))
+		return nil
 	}
 
 	db, err := sql.Open("sqlite3", vaultPath)
