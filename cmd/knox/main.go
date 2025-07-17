@@ -10,7 +10,6 @@ import (
 	"github.com/tomdoesdev/knox/internal"
 	"github.com/tomdoesdev/knox/internal/project"
 	"github.com/tomdoesdev/knox/internal/secrets"
-	"github.com/tomdoesdev/knox/internal/secrets/store"
 	"github.com/tomdoesdev/knox/kit/log"
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
@@ -32,7 +31,7 @@ func main() {
 
 	e := secrets.NewNoOpEncryptionHandler()
 
-	s, err := store.NewFileSecretStore(workspace.VaultFilePath, workspace.ProjectID, e)
+	s, err := secrets.NewFileSecretStore(workspace.VaultFilePath, workspace.ProjectID, e)
 	if err != nil {
 		slog.Error("failed to create vault provider", "error", err)
 		os.Exit(1)

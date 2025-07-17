@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
 
@@ -20,7 +21,7 @@ func NewAddCommand(k *internal.Knox) *cli.Command {
 
 func addActionHandler(cmd *cli.Command, k *internal.Knox) error {
 	if cmd.Args().Len() != 2 {
-		return fmt.Errorf("expected 2 arguments, got %d", cmd.Args().Len())
+		return errs.Wrap(ErrInvalidArguments, InvalidArguments, fmt.Sprintf("expected 2 arguments, got %d", cmd.Args().Len()))
 	}
 
 	key := cmd.Args().Get(0)
@@ -28,7 +29,7 @@ func addActionHandler(cmd *cli.Command, k *internal.Knox) error {
 
 	err := k.Store.WriteSecret(key, value)
 	if err != nil {
-		return fmt.Errorf("knox_add.addAction.add: %w", err)
+		return errs.Wrap(err)
 	}
 
 	fmt.Printf("secret added: %s\n", key)

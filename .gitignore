@@ -32,3 +32,4 @@ knox.json
 .vscode/
 bin/
 .tasks/
+/vault.knox
