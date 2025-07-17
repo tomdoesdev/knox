@@ -29,12 +29,8 @@ func getActionHandler(cmd *cli.Command, k *internal.Knox) error {
 	if err != nil {
 		return fmt.Errorf("knox_get.getAction.readStore: %w", err)
 	}
-	defer secret.Destroy()
 
-	err = secret.ReadWith(func(value []byte) error {
-		_, err = fmt.Printf("%s=%s\n", key, value)
-		return err
-	})
+	_, err = fmt.Printf("%s=%s\n", key, secret)
 
 	if err != nil {
 		return fmt.Errorf("knox_get.getAction.readSecret: %w", err)

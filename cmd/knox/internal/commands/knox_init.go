@@ -2,9 +2,9 @@ package commands
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tomdoesdev/knox/internal/project"
+	"github.com/tomdoesdev/knox/pkg/errors"
 	"github.com/urfave/cli/v3"
 )
 
@@ -21,7 +21,12 @@ func NewInitCommand() *cli.Command {
 func initialise() error {
 	_, err := project.CreateFile("")
 	if err != nil {
-		return fmt.Errorf("knox.init.createProjectFile: %w", err)
+		// If it's already a Knox error, return it as-is
+		if errors.Is(err, errors.ProjectExistsCode) {
+			return err
+		}
+		// Otherwise wrap it with a more appropriate error
+		return errors.Wrap(err, errors.ProjectInvalidCode, "failed to create project file")
 	}
 
 	return nil

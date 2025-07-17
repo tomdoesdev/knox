@@ -49,7 +49,7 @@ func main() {
 	defer (func() {
 		err := k.Close()
 		if err != nil {
-			slog.Error("error closing vault: %v", err)
+			slog.Error("error closing vault: %v", slog.String("error", err.Error()))
 		}
 	})()
 
