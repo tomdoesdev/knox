@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tomdoesdev/knox/pkg/project"
+	"github.com/tomdoesdev/knox/internal/project"
 	"github.com/urfave/cli/v3"
 )
 
@@ -19,7 +19,7 @@ func NewInitCommand() *cli.Command {
 }
 
 func initialise() error {
-	_, err := project.CreateFile()
+	_, err := project.CreateFile("")
 	if err != nil {
 		return fmt.Errorf("knox.init.createProjectFile: %w", err)
 	}

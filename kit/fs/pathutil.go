@@ -4,9 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
-func Exists(path string) (bool, error) {
+type FilePath = string
+type DirPath = string
+
+func IsExist(path string) (bool, error) {
+	if path == "" {
+		return false, nil
+	}
 	_, err := os.Lstat(path)
 	if err == nil {
 		return true, nil
@@ -15,4 +22,31 @@ func Exists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, fmt.Errorf("pathutil: stat %q: %w", path, err)
+}
+
+func IsDir(path string) bool {
+	if path == "" {
+		return false
+	}
+
+	path = filepath.Clean(path)
+
+	info, err := os.Stat(path)
+	if err != nil {
+		panic(fmt.Errorf("pathutil: stat %q: %w", path, err))
+	}
+	return info.IsDir()
+}
+
+func IsFile(path string) bool {
+	if path == "" {
+		return false
+	}
+	path = filepath.Clean(path)
+
+	info, err := os.Stat(path)
+	if err != nil {
+		panic(fmt.Errorf("pathutil: stat %q: %w", path, err))
+	}
+	return info.Mode().IsRegular()
 }

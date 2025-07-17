@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	ErrNoCommand     = errors.New("no command")
-	ErrCommandFailed = errors.New("command failed to start")
+	ErrNoCommand = errors.New("no command")
 )
 
 type Config struct {
