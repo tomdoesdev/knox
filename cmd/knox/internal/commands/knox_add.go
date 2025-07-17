@@ -29,7 +29,7 @@ func addActionHandler(cmd *cli.Command, k *internal.Knox) error {
 
 	err := k.Store.WriteSecret(key, value)
 	if err != nil {
-		return errs.Wrap(err)
+		return err
 	}
 
 	fmt.Printf("secret added: %s\n", key)
