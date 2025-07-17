@@ -23,12 +23,13 @@ type SqliteSecretStore struct {
 	encryptor secrets.EncryptionHandler
 }
 
-func (s *SqliteSecretStore) ReadSecret(key string) (string, error) {
+func (s *SqliteSecretStore) ReadSecret(key string) (*secrets.SecureString, error) {
 	query := `SELECT value FROM vault WHERE project_id = $1 AND key = $2 LIMIT 1;`
 	var secret string
+
 	err := s.db.QueryRow(query, s.projectId, key).Scan(&secret)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	return s.encryptor.Decrypt(secret)

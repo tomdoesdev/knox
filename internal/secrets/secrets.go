@@ -6,7 +6,7 @@ import (
 )
 
 type SecretReader interface {
-	ReadSecret(key string) (string, error)
+	ReadSecret(key string) (*SecureString, error)
 }
 
 type SecretWriter interface {
@@ -31,7 +31,7 @@ type SecretStore interface {
 // EncryptionHandler defines the interface for encrypting/decrypting secrets
 type EncryptionHandler interface {
 	Encrypt(plaintext string) (string, error)
-	Decrypt(ciphertext string) (string, error)
+	Decrypt(ciphertext string) (*SecureString, error)
 }
 
 type noOpEncryption struct{}
@@ -40,8 +40,9 @@ func (p *noOpEncryption) Encrypt(plaintext string) (string, error) {
 	return plaintext, nil
 }
 
-func (p *noOpEncryption) Decrypt(ciphertext string) (string, error) {
-	return ciphertext, nil
+func (p *noOpEncryption) Decrypt(ciphertext string) (*SecureString, error) {
+	secret := NewSecureString(ciphertext)
+	return secret, nil
 }
 
 func NewNoOpEncryptionHandler() EncryptionHandler {

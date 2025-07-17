@@ -24,6 +24,7 @@ func NewKnoxCommand(knox *internal.Knox) *cli.Command {
 			NewAddCommand(knox),
 			NewRemoveCommand(knox),
 			NewRunCommand(),
+			NewGetCommand(knox),
 		},
 	}
 }
