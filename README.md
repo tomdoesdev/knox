@@ -5,42 +5,33 @@
 
 # Knox
 
-A secure local development secrets manager for modern development workflows.
+A secure local development secrets manager designed to prevent accidental commits of sensitive configuration to version control systems.
 
 ## Overview
 
-Knox provides a secure, project-based approach to managing sensitive configuration during development. Each project maintains its own encrypted vault of secrets, ensuring sensitive data never leaves your local environment. 
+Knox solves the problem of accidentally committing sensitive information (API keys, database credentials, tokens) to git repositories through `.env` files. It provides a project-based approach to managing secrets during development by storing them locally and injecting them into applications at runtime.
 
-Knox also provides a means to execute other applications with environment variables from a .env file. Knox will parse the .env file and replace any
-template calls to Secret with the appropriate, unencrypted secret.
+## Key Features
 
-
-## Features
-
-- **Project-Based Isolation** - Each project has its own secrets vault
-- **SQLite Backend** - Fast, reliable local storage with ACID compliance
-- **Unique Key Constraints** - Prevents accidental duplicate secrets
-- **Clean CLI Interface** - Simple commands for everyday operations
-- **JSON Configuration** - Human-readable project metadata
-
-## Installation
-
-### From Source
-
-```bash
-git clone https://github.com/tomdoesdev/knox.git
-cd knox
-just build
-```
-
-### Prerequisites
-
-- Go 1.24.5 or later
-- SQLite3 (automatically included)
+- **Prevent Secret Leaks** - Remove secrets from version-controlled `.env` files
+- **Template-Based Injection** - Use Go templates in `.env` files with in-memory secret replacement
+- **Project Isolation** - Each project has unique secret namespace within shared vault
+- **Seamless Workflow** - Replace traditional `.env` workflows with minimal changes
+- **Local Storage** - SQLite backend for fast, reliable local storage
+- **Development Focused** - Designed for local development, not production
 
 ## Quick Start
 
-### Initialize a New Project
+### Installation
+
+```bash
+# From source (requires Go 1.24.5+)
+git clone https://github.com/tomdoesdev/knox.git
+cd knox
+go build -o knox ./cmd/knox
+```
+
+### Initialize a Project
 
 ```bash
 # In your project directory
@@ -49,129 +40,142 @@ knox init
 
 This creates a `knox.json` configuration file and initializes your project's secret vault.
 
-### Set Secrets
+### Manage Secrets
 
 ```bash
+# Store secrets
 knox set DATABASE_URL "postgresql://localhost:5432/myapp"
 knox set API_KEY "sk-1234567890abcdef"
-```
 
-### Run An Applicatiom
-
-```bash
+# Retrieve secrets
 knox get DATABASE_URL
 knox get API_KEY
-```
 
-### Check Project Status
+# Remove secrets
+knox remove OLD_API_KEY
 
-```bash
+# Check project status
 knox status
 ```
 
+### Template-Based Environment Files
+
+Create `.env.template` files using Go template syntax:
+
+```bash
+# .env.template
+DATABASE_URL={{.Secret "DATABASE_URL"}}
+API_KEY={{.Secret "API_KEY"}}
+DEBUG={{.Secret "DEBUG_MODE"}}
+PORT={{.Default "PORT" "3000"}}
+```
+
+### Run Applications with Injected Secrets
+
+```bash
+# Run your application with secrets injected
+knox run --env .env.template npm start
+knox run --env .env.template go run main.go
+knox run --env .env.template python app.py
+```
+
+Knox processes the template in-memory, injects secrets, and runs your application with the resulting environment variables.
+
+## How It Works
+
+1. **Store Secrets Locally** - Secrets are stored in a local SQLite database
+2. **Template Processing** - `.env` files are processed as Go templates
+3. **In-Memory Injection** - Secrets are injected into templates in-memory (never written to disk)
+4. **Process Execution** - Applications run with the constructed environment variables
+
 ## Architecture
 
-Knox uses a clean, layered architecture:
+### Storage
+- **Backend**: SQLite database for local storage
+- **Location**: `~/.local/share/knox/` (or custom `vault_path`)
+- **Schema**: Single `vault` table with `(project_id, key)` unique constraint
+- **Isolation**: Projects share vault file but are separated by `project_id`
 
-- **CLI Layer** (`cmd/knox/`) - User interface and command routing
-- **Business Logic** (`internal/`) - Core functionality and domain models
-- **Storage** - SQLite-based encrypted vault storage
+### Template Engine
+- **Engine**: Go's `text/template` package
+- **Functions**: `{{.Secret "KEY"}}`, `{{.Env "KEY"}}`, `{{.Default "KEY" "VALUE"}}`
+- **Processing**: In-memory execution (secrets never written to disk)
+- **Parsing**: `github.com/hashicorp/go-envparse` for environment variable parsing
 
-### Project Structure
-
-```
-knox/
-├── cmd/knox/           # CLI application entry point
-├── internal/
-│   ├── config/         # Configuration management
-│   ├── project/        # Project operations
-│   ├── vault/          # Secret storage backend
-│   └── secrets/        # Secret management logic
-└── kit/                # Shared utilities
-```
+### Security Model
+- **Threat Model**: Prevents accidental git commits of secrets
+- **Local Only**: Secrets never leave developer machine
+- **No Encryption**: Plaintext storage (development-focused)
+- **Project Isolation**: Secrets separated by unique `project_id`
 
 ## Configuration
 
-Knox stores project configuration in `knox.json`:
-
+### Project Configuration (`knox.json`)
 ```json
 {
-  "project_id": "abc123def456",
-  "vault_path": "/Users/you/.local/share/knox/knox.vault"
+  "project_id": "unique-project-identifier",
+  "vault_path": "/path/to/vault/file"
 }
 ```
 
 ### Environment Variables
-
 - `LOG_LEVEL=debug` - Enable debug logging
 
-## Security
-
-- **Local Storage Only** - Secrets never leave your machine
-- **Project Isolation** - Each project maintains separate secrets
-- **Unique Constraints** - Prevents accidental secret overwrites
-- **No Network Access** - Pure local operation
-
-## Development
-
-Knox follows Go best practices and maintains a clean architecture.
-
-### Build Commands
+## Commands
 
 ```bash
-# Build the application
-just build
+# Project lifecycle
+knox init                    # Initialize project
+knox status                  # Show project status
 
-# Run tests
-just test
+# Secret management
+knox set KEY VALUE          # Store secret
+knox get KEY                # Retrieve secret
+knox remove KEY             # Delete secret
 
-# Run with arguments
-just run [command] [args]
-
-# Lint code
-just lint
-
-# Format code
-just format
+# Application execution
+knox run [--env FILE] COMMAND [ARGS...]  # Run with injected secrets
 ```
 
-### Running Tests
+## Development Status
 
-```bash
-# All tests
-go test ./...
+### ✅ Phase 1: Core Secret Management (Complete)
+- [ ] Project initialization (`knox init`)
+- [ ] Secret storage (`knox set/add`)
+- [ ] Secret retrieval (`knox get`)
+- [ ] Secret removal (`knox remove`)
+- [ ] Project status (`knox status`)
 
-# Specific package
-go test ./internal/vault
+### 🚧 Phase 2: Template Processing (In Progress)
+- [ ] Go template engine integration
+- [ ] Template function library
+- [ ] Error handling for template parsing
+- [ ] Template validation
 
-# With verbose output
-go test -v ./...
-```
+### 📋 Phase 3: Process Execution (Planned)
+- [ ] Command execution with environment injection
+- [ ] Signal handling and forwarding
+- [ ] Exit code preservation
+- [ ] Timeout management
+
+## Limitations
+
+- **Development Only**: Not designed for production secret management
+- **No Encryption**: Secrets stored in plaintext locally
+- **No Sharing**: No built-in team secret sharing
+- **Local Only**: No network operations or cloud integration
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the existing patterns
+3. Make your changes following existing patterns
 4. Add tests for new functionality
-5. Run the test suite (`just test`)
-6. Commit your changes (`git commit -am 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
+5. Run tests (`go test ./...`)
+6. Commit your changes
+7. Push to the branch
 8. Open a Pull Request
-
-### Code Style
-
-- Follow Go conventions and existing patterns
-- Use structured logging with `slog`
-- Error handling with wrapped errors
-- Tests for all new functionality
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Built with [urfave/cli](https://github.com/urfave/cli) for CLI framework
-- Uses [SQLite](https://sqlite.org/) for secure local storage
-- Inspired by modern secret management best practices
