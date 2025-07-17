@@ -14,12 +14,7 @@ import (
 	"github.com/tomdoesdev/knox/internal"
 	"github.com/tomdoesdev/knox/internal/constants"
 	"github.com/tomdoesdev/knox/kit/fs"
-	errors2 "github.com/tomdoesdev/knox/pkg/errors"
-)
-
-var (
-	ErrProjectExists   = errors2.ErrProjectExists
-	ErrProjectNotFound = errors2.ErrProjectNotFound
+	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
 type Config struct {
@@ -79,7 +74,7 @@ func CreateFile(projectPath fs.FilePath) (*Config, error) {
 	}
 
 	if exists {
-		return nil, errors2.WrapWithDefaultMessage(nil, errors2.ProjectExistsCode)
+		return nil, errs.WrapWithDefaultMessage(nil, errs.ProjectExistsCode)
 	}
 
 	p, err := NewConfig()
@@ -117,7 +112,7 @@ func load(confDir string) (*Project, error) {
 	}
 
 	if !exists {
-		return nil, errors2.WrapWithDefaultMessage(nil, errors2.ProjectNotFoundCode)
+		return nil, errs.WrapWithDefaultMessage(nil, errs.ProjectNotFoundCode)
 	}
 
 	jsonbytes, err := os.ReadFile(confPath)

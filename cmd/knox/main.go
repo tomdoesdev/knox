@@ -12,6 +12,7 @@ import (
 	"github.com/tomdoesdev/knox/internal/secrets"
 	"github.com/tomdoesdev/knox/internal/secrets/store"
 	"github.com/tomdoesdev/knox/kit/log"
+	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
 func main() {
@@ -56,7 +57,7 @@ func main() {
 	cmdRoot := commands.NewKnoxCommand(k)
 
 	if err := cmdRoot.Run(context.Background(), os.Args); err != nil {
-		if errors.Is(err, project.ErrProjectExists) {
+		if errors.Is(err, errs.ErrProjectExists) {
 			slog.Info("project already exists")
 			os.Exit(0)
 		}

@@ -1,11 +1,11 @@
-package errors
+package errs
 
 import (
 	"fmt"
 	"testing"
 )
 
-func TestKnoxError_Error(t *testing.T) {
+func TestKnoxErr_Error(t *testing.T) {
 	tests := []struct {
 		name     string
 		err      *KnoxError
@@ -39,7 +39,7 @@ func TestKnoxError_Error(t *testing.T) {
 	}
 }
 
-func TestKnoxError_Is(t *testing.T) {
+func TestKnoxErr_Is(t *testing.T) {
 	err1 := &KnoxError{Code: ProjectExistsCode, Message: "test"}
 	err2 := &KnoxError{Code: ProjectExistsCode, Message: "different message"}
 	err3 := &KnoxError{Code: SecretNotFoundCode, Message: "test"}
@@ -53,7 +53,7 @@ func TestKnoxError_Is(t *testing.T) {
 	}
 }
 
-func TestKnoxError_WithContext(t *testing.T) {
+func TestKnoxErr_WithContext(t *testing.T) {
 	err := New(VaultCorruptedCode, "test").
 		WithContext("key1", "value1").
 		WithContext("key2", 42)

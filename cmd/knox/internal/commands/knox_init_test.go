@@ -10,7 +10,7 @@ import (
 
 	"github.com/tomdoesdev/knox/internal/constants"
 	"github.com/tomdoesdev/knox/internal/project"
-	errors2 "github.com/tomdoesdev/knox/pkg/errors"
+	errors2 "github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
 

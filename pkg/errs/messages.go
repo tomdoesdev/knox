@@ -1,4 +1,4 @@
-package errors
+package errs
 
 // ErrorMessages contains all user-facing error messages
 // This allows for easy localization and consistent messaging

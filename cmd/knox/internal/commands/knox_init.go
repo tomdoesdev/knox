@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/tomdoesdev/knox/internal/project"
-	"github.com/tomdoesdev/knox/pkg/errors"
+	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
 
@@ -22,11 +22,11 @@ func initialise() error {
 	_, err := project.CreateFile("")
 	if err != nil {
 		// If it's already a Knox error, return it as-is
-		if errors.Is(err, errors.ProjectExistsCode) {
+		if errs.Is(err, errs.ProjectExistsCode) {
 			return err
 		}
 		// Otherwise wrap it with a more appropriate error
-		return errors.Wrap(err, errors.ProjectInvalidCode, "failed to create project file")
+		return errs.Wrap(err, errs.ProjectInvalidCode, "failed to create project file")
 	}
 
 	return nil

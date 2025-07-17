@@ -1,11 +1,11 @@
-package errors
+package errs
 
 import (
 	"errors"
 	"fmt"
 )
 
-// ErrorCode represents different types of Knox errors
+// ErrorCode represents different types of Knox errs
 type ErrorCode string
 
 const (
