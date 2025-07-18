@@ -13,7 +13,8 @@ func NewGetCommand() *cli.Command {
 		Name:  "get",
 		Usage: "get a secret to the current knox vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			k, err := LoadKnoxContext()
+			force := cmd.Bool("force")
+			k, err := LoadKnoxContextWithOptions(force)
 			if err != nil {
 				return err
 			}

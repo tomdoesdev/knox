@@ -14,7 +14,8 @@ func NewRemoveCommand() *cli.Command {
 		Aliases: []string{"rm"},
 		Usage:   "remove a secret from the vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			k, err := LoadKnoxContext()
+			force := cmd.Bool("force")
+			k, err := LoadKnoxContextWithOptions(force)
 			if err != nil {
 				return err
 			}

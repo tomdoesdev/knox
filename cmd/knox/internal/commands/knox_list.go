@@ -19,13 +19,14 @@ func NewListCommand() *cli.Command {
 		},
 		Usage: "list the secrets for the current project vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return listActionHandler(cmd.Bool("print-secrets"))
+			force := cmd.Bool("force")
+			return listActionHandler(cmd.Bool("print-secrets"), force)
 		},
 	}
 }
 
-func listActionHandler(printSecrets bool) error {
-	knox, err := LoadKnoxContext()
+func listActionHandler(printSecrets bool, force bool) error {
+	knox, err := LoadKnoxContextWithOptions(force)
 	if err != nil {
 		return err
 	}

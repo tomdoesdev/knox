@@ -8,7 +8,7 @@ import (
 	"github.com/tomdoesdev/knox/internal/secrets"
 )
 
-func LoadKnoxContext() (*internal.Knox, error) {
+func LoadKnoxContextWithOptions(force bool) (*internal.Knox, error) {
 	p, err := project.Load()
 	if err != nil {
 		slog.Error("commands.LoadKnoxContext", "error", err)
@@ -23,7 +23,7 @@ func LoadKnoxContext() (*internal.Knox, error) {
 
 	e := secrets.NewNoOpEncryptionHandler()
 
-	s, err := secrets.NewFileSecretStore(workspace.VaultFilePath, workspace.ProjectID, e)
+	s, err := secrets.NewFileSecretStoreWithOptions(workspace.VaultFilePath, workspace.ProjectID, e, force)
 	if err != nil {
 		return nil, err
 	}

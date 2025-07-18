@@ -27,7 +27,8 @@ func NewAddCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			k, err := LoadKnoxContext()
+			force := cmd.Bool("force")
+			k, err := LoadKnoxContextWithOptions(force)
 			if err != nil {
 				return err
 			}
@@ -48,7 +49,7 @@ func addActionHandler(key, value string, k *internal.Knox) error {
 		return errs.Wrap(
 			ErrInvalidArguments,
 			InvalidArguments,
-		"value argument is required").WithContext("missing", "value")
+			"value argument is required").WithContext("missing", "value")
 	}
 
 	err := k.Store.WriteSecret(key, value)

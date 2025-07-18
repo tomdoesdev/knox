@@ -9,7 +9,7 @@ They dramatically improve the quality of the work you create.
 When asked to implement any feature or make changes, ALWAYS start by asking:
 "Should I create a Spec for this task first?"
 
-IFF user agrees:
+IF the user agrees:
 
 - Create a markdown file in `specs/scopes/FeatureName.md`
 - Interview the user to clarify:
@@ -50,6 +50,20 @@ spec/
 │ └── .local/ # Git-ignored experimental Specs
 │ └── Experiment.md
 ```
+
+### Build Instructions
+
+When building Go binaries, ALWAYS specify the output directory as `./bin`:
+
+```bash
+# Correct way to build knox CLI
+go build -o ./bin/knox ./cmd/knox/
+
+# NOT this (saves to current directory):
+go build -o knox ./cmd/knox/
+```
+
+This ensures all build artifacts are organized in the `./bin` directory as specified in the file organization structure.
 
 **Remember: Think first, ask clarifying questions, _then_ code. The Spec is your north star.**
 

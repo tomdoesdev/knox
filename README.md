@@ -180,6 +180,9 @@ knox run [OPTIONS] COMMAND [ARGS...]         # Run with injected secrets
 --inherit-env                                # Inherit current environment variables
 --allow-override                             # Allow template to override existing vars
 --timeout DURATION                           # Process timeout
+
+# Secrets command options:
+--force                                      # Force vault creation in version-controlled directories
 ```
 
 ## Development Status
@@ -223,6 +226,7 @@ knox run [OPTIONS] COMMAND [ARGS...]         # Run with injected secrets
 - ✅ Use namespaced keys: `aws:api_key`, `db:password`
 - ✅ Rotate secrets regularly in your vault
 - ✅ Use `knox secrets list` to audit what secrets exist
+- ✅ Knox prevents vault creation in version-controlled directories (use `--force` to override)
 
 ## Limitations
 
