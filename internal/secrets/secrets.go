@@ -1,6 +1,7 @@
 package secrets
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/tomdoesdev/knox/pkg/errs"
@@ -18,6 +19,11 @@ type Secret struct {
 	Key   string
 	Value string
 }
+
+func (s *Secret) String() string {
+	return fmt.Sprintf("%s=%s", s.Key, s.Value)
+}
+
 type SecretLister interface {
 	ListKeys() ([]string, error)
 	ListSecrets() ([]Secret, error)

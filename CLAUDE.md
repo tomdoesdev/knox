@@ -39,6 +39,7 @@ ONLY after user types "GO!" or explicitly approves:
 ### File Organization
 
 ```
+bin/ # Build artifacts should be saved here
 cmd/ # Tools and utilities (such as the knox cli) that will be built.
 pkg/ # Public API of Knox. Anything knox related that makes sense to be importable by other go projects.
 kit/ # Utility module containing code that could be useful/shared across different projects (not just knox)

@@ -10,8 +10,13 @@ import (
 
 func NewListCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "list",
-		Flags: []cli.Flag{&cli.BoolFlag{Name: "print-secrets", Value: false, Usage: "print both keys and secrets to stdout"}},
+		Name: "list",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{Name: "print-secrets",
+				Aliases: []string{"s"},
+				Value:   false,
+				Usage:   "print both keys and secrets to stdout"},
+		},
 		Usage: "list the secrets for the current project vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return listActionHandler(cmd.Bool("print-secrets"))
@@ -53,7 +58,7 @@ func listActionHandler(printSecrets bool) error {
 
 	for _, kv := range secrets {
 		if printSecrets {
-			fmt.Printf("%s=%s", kv.Key, kv.Value)
+			fmt.Println(kv.String())
 		} else {
 			fmt.Println(kv.Key)
 		}

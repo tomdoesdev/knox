@@ -9,17 +9,17 @@ import (
 
 const Schema = `
 create table if not exists vault_config (
-	Key text not null primary Key,
-	Value text not null
+	key text not null primary Key,
+	value text not null
 );
 
 CREATE TABLE secrets (
 id INTEGER PRIMARY KEY,
 project_id TEXT NOT NULL,
-Key TEXT NOT NULL,
-Value TEXT NOT NULL,
+key TEXT NOT NULL,
+value TEXT NOT NULL,
 
-UNIQUE (project_id,Key)
+UNIQUE (project_id,key)
 )`
 
 type SqliteSecretStore struct {
@@ -56,12 +56,34 @@ func (s *SqliteSecretStore) ListKeys() ([]string, error) {
 }
 
 func (s *SqliteSecretStore) ListSecrets() ([]Secret, error) {
-	//TODO implement me
-	panic("implement me")
+	query := `SELECT key, value FROM secrets WHERE project_id = ?`
+
+	rows, err := s.db.Query(query, s.projectId)
+	if err != nil {
+		return nil, errs.Wrap(err, SecretListFailureCode, "failed to query database")
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			slog.Error("failed to close database rows", "err", err)
+		}
+	}(rows)
+
+	secrets := make([]Secret, 0)
+	for rows.Next() {
+		secret := Secret{}
+
+		if err := rows.Scan(&secret.Key, &secret.Value); err != nil {
+			return nil, errs.Wrap(err, SecretReadFailureCode, "failed to scan secret")
+		}
+
+		secrets = append(secrets, secret)
+	}
+	return secrets, nil
 }
 
 func (s *SqliteSecretStore) ReadSecret(key string) (string, error) {
-	query := `SELECT Value FROM secrets WHERE project_id = $1 AND Key = $2 LIMIT 1;`
+	query := `SELECT value FROM secrets WHERE project_id = $1 AND key = $2 LIMIT 1;`
 	var secret string
 
 	err := s.db.QueryRow(query, s.projectId, key).Scan(&secret)
@@ -78,7 +100,7 @@ func (s *SqliteSecretStore) ReadSecret(key string) (string, error) {
 }
 
 func (s *SqliteSecretStore) WriteSecret(key, value string) error {
-	query := `INSERT INTO secrets (project_id, Key, Value) VALUES ($1, $2, $3);`
+	query := `INSERT INTO secrets (project_id, key, value) VALUES ($1, $2, $3);`
 	value, err := s.encryptor.Encrypt(value)
 	if err != nil {
 		return errs.Wrap(err, SecretWriteFailureCode, "can not encrypt secret")
@@ -91,7 +113,7 @@ func (s *SqliteSecretStore) WriteSecret(key, value string) error {
 }
 
 func (s *SqliteSecretStore) DeleteSecret(key string) error {
-	query := `DELETE FROM secrets WHERE project_id = $1 AND Key = $2;`
+	query := `DELETE FROM secrets WHERE project_id = $1 AND key = $2;`
 
 	_, err := s.db.Exec(query, s.projectId, key)
 	if err != nil {
@@ -109,6 +131,11 @@ func newSqliteStore(dataSourceName, projectId string, handler EncryptionHandler)
 	db, err := sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		return nil, errs.Wrap(err, StoreOpenFailureCode, "failed to open database")
+	}
+
+	// Configure SQLite security settings
+	if err := configureSQLiteSecurity(db); err != nil {
+		return nil, errs.Wrap(err, StoreExecFailureCode, "failed to configure SQLite security")
 	}
 
 	// Apply schema and return early if we are using an in memory sqlite instance
@@ -129,6 +156,35 @@ func newSqliteStore(dataSourceName, projectId string, handler EncryptionHandler)
 
 	return &SqliteSecretStore{db: db, projectId: projectId, encryptor: handler}, nil
 
+}
+
+func configureSQLiteSecurity(db *sql.DB) error {
+	// Enable secure delete - overwrites deleted data with zeros
+	// Options: OFF (default), ON (secure), FAST (compromise)
+	_, err := db.Exec("PRAGMA secure_delete = FAST")
+	if err != nil {
+		return err
+	}
+
+	// Enable foreign key constraints for data integrity
+	_, err = db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		return err
+	}
+
+	// Set journal mode to WAL for better concurrency and crash recovery
+	_, err = db.Exec("PRAGMA journal_mode = WAL")
+	if err != nil {
+		return err
+	}
+
+	// Enable synchronous mode for better durability
+	_, err = db.Exec("PRAGMA synchronous = NORMAL")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func isInitialized(db *sql.DB) bool {

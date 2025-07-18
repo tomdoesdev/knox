@@ -33,3 +33,5 @@ knox.json
 bin/
 .tasks/
 /vault.knox
+/vault.knox-shm
+/vault.knox-wal

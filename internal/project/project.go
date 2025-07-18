@@ -30,7 +30,7 @@ var (
 type Config struct {
 	ProjectID     string      `json:"project_id"`
 	ProjectPath   fs.FilePath `json:"-"`
-	VaultFilePath fs.FilePath `json:"vault_file_path,omitempty"`
+	VaultFilePath fs.FilePath `json:"vault_path,omitempty"`
 }
 
 type Project struct {

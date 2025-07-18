@@ -132,6 +132,7 @@ knox run npm start
 - **Location**: `~/.local/share/knox/` (or custom `vault_path`)
 - **Schema**: Single `secrets` table with `(project_id, key)` unique constraint
 - **Isolation**: Projects share vault file but are separated by `project_id`
+- **Security**: Secure delete (FAST), WAL journal mode, foreign key constraints
 
 ### Template Engine
 - **Engine**: Go's `text/template` package
