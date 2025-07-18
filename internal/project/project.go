@@ -30,7 +30,7 @@ var (
 type Config struct {
 	ProjectID     string      `json:"project_id"`
 	ProjectPath   fs.FilePath `json:"-"`
-	VaultFilePath fs.FilePath `json:"vault_path,omitempty"`
+	VaultFilePath fs.FilePath `json:"-"`
 }
 
 type Project struct {
@@ -38,8 +38,11 @@ type Project struct {
 }
 
 func NewProject(config *Config) (*Project, error) {
-	//If no vaultpath is provided by the project config fall back to the 'global' vault
-	if config.VaultFilePath == "" {
+	if p, exists := os.LookupEnv(constants.EnvVarKnoxRoot); exists {
+		if fs.IsDir(p) {
+			config.VaultFilePath = path.Join(p, constants.DefaultVaultFileName)
+		}
+	} else {
 		config.VaultFilePath = path.Join(xdg.DataHome, constants.DefaultKnoxDirName, constants.DefaultVaultFileName)
 	}
 

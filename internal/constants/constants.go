@@ -7,3 +7,7 @@ const (
 const (
 	DefaultKnoxDirName = "knox"
 )
+
+const (
+	EnvVarKnoxRoot = "KNOX_ROOT"
+)

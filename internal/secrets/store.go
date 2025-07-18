@@ -23,7 +23,6 @@ func NewFileSecretStore(source fs.FilePath, projectId string, handler Encryption
 }
 
 func NewFileSecretStoreWithOptions(source fs.FilePath, projectId string, handler EncryptionHandler, force bool) (*SqliteSecretStore, error) {
-	// Check if vault file would be created in a VCS directory
 	if err := checkVCSProtection(source, force); err != nil {
 		return nil, err
 	}
