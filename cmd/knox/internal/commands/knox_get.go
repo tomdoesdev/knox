@@ -8,11 +8,15 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func NewGetCommand(k *internal.Knox) *cli.Command {
+func NewGetCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "get",
-		Usage: fmt.Sprintf("get a secret to the current knox vault (%s)", k.Workspace),
+		Usage: "get a secret to the current knox vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			k, err := LoadKnoxContext()
+			if err != nil {
+				return err
+			}
 			return getActionHandler(cmd, k)
 		},
 	}

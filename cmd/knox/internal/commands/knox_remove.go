@@ -8,12 +8,16 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func NewRemoveCommand(k *internal.Knox) *cli.Command {
+func NewRemoveCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "remove",
 		Aliases: []string{"rm"},
 		Usage:   "remove a secret from the vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			k, err := LoadKnoxContext()
+			if err != nil {
+				return err
+			}
 			return removeActionfunc(cmd, k)
 		},
 	}

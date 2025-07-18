@@ -5,11 +5,10 @@ import (
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/internal"
 	"github.com/urfave/cli/v3"
 )
 
-func NewKnoxCommand(knox *internal.Knox) *cli.Command {
+func NewKnoxCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "knox",
 		Usage:       "manage local development vault",
@@ -20,11 +19,11 @@ func NewKnoxCommand(knox *internal.Knox) *cli.Command {
 		},
 		Commands: []*cli.Command{
 			NewInitCommand(),
-			NewStatusCommand(knox),
-			NewAddCommand(knox),
-			NewRemoveCommand(knox),
+			NewStatusCommand(),
+			NewAddCommand(),
+			NewRemoveCommand(),
 			NewRunCommand(),
-			NewGetCommand(knox),
+			NewGetCommand(),
 		},
 	}
 }

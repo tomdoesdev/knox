@@ -9,11 +9,15 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func NewAddCommand(k *internal.Knox) *cli.Command {
+func NewAddCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "add",
-		Usage: fmt.Sprintf("add a secret to the current knox vault (%s)", k.Workspace),
+		Usage: "add a secret to the current knox vault",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			k, err := LoadKnoxContext()
+			if err != nil {
+				return err
+			}
 			return addActionHandler(cmd, k)
 		},
 	}
@@ -27,7 +31,13 @@ func addActionHandler(cmd *cli.Command, k *internal.Knox) error {
 	key := cmd.Args().Get(0)
 	value := cmd.Args().Get(1)
 
-	err := k.Store.WriteSecret(key, value)
+	k, err := LoadKnoxContext()
+
+	if err != nil {
+		return err
+	}
+
+	err = k.Store.WriteSecret(key, value)
 	if err != nil {
 		return err
 	}

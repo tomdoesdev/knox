@@ -22,11 +22,11 @@ func initialise() error {
 	_, err := project.CreateFile("")
 	if err != nil {
 		// If it's already a Knox error, return it as-is
-		if errs.Is(err, errs.ProjectExistsCode) {
+		if errs.Is(err, project.CreateFailureCode) {
 			return err
 		}
 		// Otherwise wrap it with a more appropriate error
-		return errs.Wrap(err, errs.ProjectInvalidCode, "failed to create project file")
+		return errs.Wrap(err, project.CreateFailureCode, "failed to create project file")
 	}
 
 	return nil

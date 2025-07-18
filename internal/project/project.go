@@ -17,9 +17,19 @@ import (
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
+const (
+	CreateFailureCode errs.ErrorCode = "PROJECT_EXISTS"
+	NotFoundCode      errs.ErrorCode = "PROJECT_NOT_FOUND"
+)
+
+var (
+	ErrProjectExists   = errs.New(CreateFailureCode, "project already exists")
+	ErrProjectNotFound = errs.New(NotFoundCode, "project not found")
+)
+
 type Config struct {
-	ProjectID     string `json:"project_id"`
-	ProjectPath   fs.FilePath
+	ProjectID     string      `json:"project_id"`
+	ProjectPath   fs.FilePath `json:"-"`
 	VaultFilePath fs.FilePath `json:"vault_file_path,omitempty"`
 }
 
@@ -61,7 +71,7 @@ func CreateFile(projectPath fs.FilePath) (*Config, error) {
 	if strings.TrimSpace(projectPath) == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
-			return nil, err
+			return nil, errs.Wrap(err, CreateFailureCode, "could not get current working directory")
 		}
 		projectPath = cwd
 	}
@@ -70,11 +80,12 @@ func CreateFile(projectPath fs.FilePath) (*Config, error) {
 
 	exists, err := fs.IsExist(confpath)
 	if err != nil {
-		return nil, fmt.Errorf("project.createProject: %w", err)
+		return nil, errs.Wrap(err, CreateFailureCode,
+			"faild to check if %s exists at %s", constants.DefaultProjectFileName, confpath)
 	}
 
 	if exists {
-		return nil, errs.WrapWithDefaultMessage(nil, errs.ProjectExistsCode)
+		return nil, ErrProjectExists
 	}
 
 	p, err := NewConfig()
@@ -112,12 +123,12 @@ func load(confDir string) (*Project, error) {
 	}
 
 	if !exists {
-		return nil, errs.WrapWithDefaultMessage(nil, errs.ProjectNotFoundCode)
+		return nil, ErrProjectNotFound
 	}
 
 	jsonbytes, err := os.ReadFile(confPath)
 	if err != nil {
-		return nil, err
+		return nil, errs.Wrap(err, CreateFailureCode, "failed to read %s", constants.DefaultProjectFileName)
 	}
 
 	c := new(Config)

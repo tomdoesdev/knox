@@ -5,6 +5,33 @@ import (
 	"testing"
 )
 
+const (
+	ProjectExistsCode   ErrorCode = "PROJECT_EXISTS"
+	ProjectNotFoundCode ErrorCode = "PROJECT_NOT_FOUND"
+	ProjectInvalidCode  ErrorCode = "PROJECT_INVALID"
+
+	SecretNotFoundCode ErrorCode = "SECRET_NOT_FOUND"
+	SecretExistsCode   ErrorCode = "SECRET_EXISTS"
+	SecretInvalidCode  ErrorCode = "SECRET_INVALID"
+
+	VaultCorruptedCode  ErrorCode = "VAULT_CORRUPTED"
+	VaultLockedCode     ErrorCode = "VAULT_LOCKED"
+	VaultPermissionCode ErrorCode = "VAULT_PERMISSION"
+
+	TemplateParseCode ErrorCode = "TEMPLATE_PARSE"
+	TemplateExecCode  ErrorCode = "TEMPLATE_EXEC"
+
+	ProcessFailedCode  ErrorCode = "PROCESS_FAILED"
+	ProcessTimeoutCode ErrorCode = "PROCESS_TIMEOUT"
+
+	FileNotFoundCode     ErrorCode = "FILE_NOT_FOUND"
+	FilePermissionCode   ErrorCode = "FILE_PERMISSION"
+	DirectoryInvalidCode ErrorCode = "DIRECTORY_INVALID"
+
+	InternalCode   ErrorCode = "INTERNAL"
+	ValidationCode ErrorCode = "VALIDATION"
+)
+
 func TestKnoxErr_Error(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -94,46 +121,5 @@ func TestCode(t *testing.T) {
 
 	if Code(systemErr) != "" {
 		t.Error("Code() should return empty string for non-Knox error")
-	}
-}
-
-func TestGetMessage(t *testing.T) {
-	msg := GetMessage(ProjectExistsCode)
-	if msg != "project already exists" {
-		t.Errorf("GetMessage() = %v, want 'project already exists'", msg)
-	}
-
-	msg = GetMessage("INVALID_CODE")
-	if msg != "unknown error" {
-		t.Errorf("GetMessage() = %v, want 'unknown error'", msg)
-	}
-}
-
-func TestNewWithDefaultMessage(t *testing.T) {
-	err := NewWithDefaultMessage(ProjectExistsCode)
-
-	if err.Code != ProjectExistsCode {
-		t.Error("Code not set correctly")
-	}
-
-	if err.Message != "project already exists" {
-		t.Errorf("Message = %v, want 'project already exists'", err.Message)
-	}
-}
-
-func TestWrapWithDefaultMessage(t *testing.T) {
-	originalErr := fmt.Errorf("original error")
-	err := WrapWithDefaultMessage(originalErr, ProjectExistsCode)
-
-	if err.Code != ProjectExistsCode {
-		t.Error("Code not set correctly")
-	}
-
-	if err.Message != "project already exists" {
-		t.Errorf("Message = %v, want 'project already exists'", err.Message)
-	}
-
-	if err.Cause != originalErr {
-		t.Error("Original error not preserved")
 	}
 }

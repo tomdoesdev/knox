@@ -8,40 +8,6 @@ import (
 // ErrorCode represents different types of Knox errs
 type ErrorCode string
 
-const (
-	ProjectExistsCode   ErrorCode = "PROJECT_EXISTS"
-	ProjectNotFoundCode ErrorCode = "PROJECT_NOT_FOUND"
-	ProjectInvalidCode  ErrorCode = "PROJECT_INVALID"
-
-	SecretNotFoundCode ErrorCode = "SECRET_NOT_FOUND"
-	SecretExistsCode   ErrorCode = "SECRET_EXISTS"
-	SecretInvalidCode  ErrorCode = "SECRET_INVALID"
-
-	VaultCorruptedCode  ErrorCode = "VAULT_CORRUPTED"
-	VaultLockedCode     ErrorCode = "VAULT_LOCKED"
-	VaultPermissionCode ErrorCode = "VAULT_PERMISSION"
-
-	TemplateParseCode ErrorCode = "TEMPLATE_PARSE"
-	TemplateExecCode  ErrorCode = "TEMPLATE_EXEC"
-
-	ProcessFailedCode  ErrorCode = "PROCESS_FAILED"
-	ProcessTimeoutCode ErrorCode = "PROCESS_TIMEOUT"
-
-	FileNotFoundCode     ErrorCode = "FILE_NOT_FOUND"
-	FilePermissionCode   ErrorCode = "FILE_PERMISSION"
-	DirectoryInvalidCode ErrorCode = "DIRECTORY_INVALID"
-
-	InternalCode   ErrorCode = "INTERNAL"
-	ValidationCode ErrorCode = "VALIDATION"
-)
-
-var (
-	ErrProjectExists   = New(ProjectExistsCode, "project already exists")
-	ErrProjectNotFound = New(ProjectNotFoundCode, "project not found")
-	ErrSecretNotFound  = New(SecretNotFoundCode, "secret not found")
-	ErrVaultCorrupted  = New(VaultCorruptedCode, "vault is corrupted")
-)
-
 // KnoxError represents a structured error in Knox
 type KnoxError struct {
 	Code    ErrorCode
@@ -85,10 +51,10 @@ func (e *KnoxError) WithContext(key string, value interface{}) *KnoxError {
 }
 
 // Wrap wraps an existing error with Knox error context
-func Wrap(err error, code ErrorCode, message string) *KnoxError {
+func Wrap(err error, code ErrorCode, message string, params ...any) *KnoxError {
 	return &KnoxError{
 		Code:    code,
-		Message: message,
+		Message: fmt.Sprintf(message, params...),
 		Cause:   err,
 	}
 }

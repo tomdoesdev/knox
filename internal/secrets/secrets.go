@@ -2,7 +2,14 @@ package secrets
 
 import (
 	"io"
-	"log/slog"
+
+	"github.com/tomdoesdev/knox/pkg/errs"
+)
+
+const (
+	SecretReadFailureCode    errs.ErrorCode = "SECRET_READ_FAILURE"
+	SecretWriteFailureCode   errs.ErrorCode = "SECRET_WRITE_FAILURE"
+	SecreteDeleteFailureCode errs.ErrorCode = "SECRET_DELETE_FAILURE"
 )
 
 type SecretReader interface {
@@ -26,25 +33,4 @@ type SecretStore interface {
 	SecretReadWriter
 	SecretDeleter
 	io.Closer
-}
-
-// EncryptionHandler defines the interface for encrypting/decrypting secrets
-type EncryptionHandler interface {
-	Encrypt(plaintext string) (string, error)
-	Decrypt(ciphertext string) (string, error)
-}
-
-type noOpEncryption struct{}
-
-func (p *noOpEncryption) Encrypt(plaintext string) (string, error) {
-	return plaintext, nil
-}
-
-func (p *noOpEncryption) Decrypt(ciphertext string) (string, error) {
-	return ciphertext, nil
-}
-
-func NewNoOpEncryptionHandler() EncryptionHandler {
-	slog.Warn("Using noop encryption handler")
-	return &noOpEncryption{}
 }
