@@ -24,6 +24,7 @@ type Config struct {
 	LogLevel      string
 	MaskSecrets   bool
 	AllowOverride bool
+	InheritEnv    bool
 }
 
 // EnvRunner manages process execution with environment variables
@@ -100,26 +101,37 @@ func (er *EnvRunner) Run(envVars EnvVars) error {
 }
 
 func (er *EnvRunner) buildEnvironment(envVars EnvVars) []string {
-	env := os.Environ()
+	var env []string
 
-	if !er.config.AllowOverride {
-		// Add only new variables, don't override existing ones
-		existing := make(map[string]bool)
-		for _, e := range env {
-			if idx := strings.Index(e, "="); idx != -1 {
-				existing[e[:idx]] = true
+	if er.config.InheritEnv {
+		// Start with current environment
+		env = os.Environ()
+
+		if !er.config.AllowOverride {
+			// Add only new variables, don't override existing ones
+			existing := make(map[string]bool)
+			for _, e := range env {
+				if idx := strings.Index(e, "="); idx != -1 {
+					existing[e[:idx]] = true
+				}
 			}
-		}
 
-		for key, value := range envVars {
-			if !existing[key] {
+			for key, value := range envVars {
+				if !existing[key] {
+					env = append(env, fmt.Sprintf("%s=%s", key, value))
+				} else {
+					er.logger.Printf("Skipping override of existing variable: %s", key)
+				}
+			}
+		} else {
+			// Allow overrides - add all variables
+			for key, value := range envVars {
 				env = append(env, fmt.Sprintf("%s=%s", key, value))
-			} else {
-				er.logger.Printf("Skipping override of existing variable: %s", key)
 			}
 		}
 	} else {
-		// Allow overrides - add all variables
+		// Start with clean environment - only use template variables
+		env = make([]string, 0, len(envVars))
 		for key, value := range envVars {
 			env = append(env, fmt.Sprintf("%s=%s", key, value))
 		}
