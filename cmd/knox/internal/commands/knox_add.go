@@ -31,13 +31,7 @@ func addActionHandler(cmd *cli.Command, k *internal.Knox) error {
 	key := cmd.Args().Get(0)
 	value := cmd.Args().Get(1)
 
-	k, err := LoadKnoxContext()
-
-	if err != nil {
-		return err
-	}
-
-	err = k.Store.WriteSecret(key, value)
+	err := k.Store.WriteSecret(key, value)
 	if err != nil {
 		return err
 	}
