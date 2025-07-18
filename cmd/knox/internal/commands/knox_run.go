@@ -3,8 +3,8 @@ package commands
 import (
 	"context"
 
-	"github.com/tomdoesdev/knox/internal/envar"
 	"github.com/tomdoesdev/knox/internal/project"
+	"github.com/tomdoesdev/knox/internal/runner"
 	"github.com/tomdoesdev/knox/internal/secrets"
 	"github.com/tomdoesdev/knox/internal/template"
 	"github.com/tomdoesdev/knox/pkg/errs"
@@ -65,13 +65,13 @@ func runCommand(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	runnerConfig := envar.Config{
+	runnerConfig := runner.Config{
 		Command:       cmd.Args().Slice(),
 		Timeout:       cmd.Duration("timeout"),
 		AllowOverride: cmd.Bool("allow-override"),
 		InheritEnv:    cmd.Bool("inherit-env"),
 	}
 
-	runner := envar.NewEnvRunner(runnerConfig)
+	runner := runner.NewEnvRunner(runnerConfig)
 	return runner.Run(envVars)
 }

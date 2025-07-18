@@ -1,4 +1,4 @@
-package envar
+package runner
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package envar
+package runner
 
 import (
 	"context"
@@ -16,6 +16,8 @@ import (
 var (
 	ErrNoCommand = errors.New("no command")
 )
+
+type EnvVars = map[string]string
 
 type Config struct {
 	EnvFile       string

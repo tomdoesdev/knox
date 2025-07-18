@@ -13,6 +13,7 @@ func NewSecretsCommand() *cli.Command {
 			NewAddCommand(),
 			NewGetCommand(),
 			NewRemoveCommand(),
+			NewListCommand(),
 		},
 	}
 }

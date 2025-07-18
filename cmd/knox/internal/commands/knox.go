@@ -12,7 +12,7 @@ func NewKnoxCommand() *cli.Command {
 		Description: "local development vault manager",
 		Commands: []*cli.Command{
 			NewInitCommand(),
-			NewStatusCommand(),
+
 			NewRunCommand(),
 			NewSecretsCommand(),
 		},
