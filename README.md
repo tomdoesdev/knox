@@ -58,8 +58,6 @@ knox secrets remove OLD_API_KEY
 # List all secret keys (values never displayed)
 knox secrets list
 
-# Check project status
-knox status
 ```
 
 ### Template-Based Environment Files
@@ -166,7 +164,6 @@ knox run npm start
 ```bash
 # Project lifecycle
 knox init                                    # Initialize project
-knox status                                  # Show project status
 
 # Secret management
 knox secrets add KEY VALUE                   # Store secret
@@ -192,7 +189,6 @@ knox run [OPTIONS] COMMAND [ARGS...]         # Run with injected secrets
 - [x] Secret retrieval (`knox secrets get`)
 - [x] Secret removal (`knox secrets remove`)
 - [x] Secret listing (`knox secrets list`)
-- [x] Project status (`knox status`)
 
 ### ✅ Phase 2: Template Processing (Complete)
 - [x] Go template engine integration
