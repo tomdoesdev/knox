@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/internal/v1"
 	"github.com/urfave/cli/v3"
 )
 
@@ -23,7 +23,7 @@ func NewGetCommand() *cli.Command {
 	}
 }
 
-func getActionHandler(cmd *cli.Command, k *internal.Knox) error {
+func getActionHandler(cmd *cli.Command, k *v1.Knox) error {
 	if cmd.Args().Len() != 1 {
 		return fmt.Errorf("expected 1 arguments, got %d", cmd.Args().Len())
 	}

@@ -11,8 +11,8 @@ import (
 	"github.com/adrg/xdg"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/internal"
-	"github.com/tomdoesdev/knox/internal/constants"
+	"github.com/tomdoesdev/knox/internal/v1"
+	"github.com/tomdoesdev/knox/internal/v1/constants"
 	"github.com/tomdoesdev/knox/kit/fs"
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
@@ -49,8 +49,8 @@ func NewProject(config *Config) (*Project, error) {
 	return &Project{config: *config}, nil
 }
 
-func (p *Project) Workspace() *internal.Workspace {
-	return &internal.Workspace{
+func (p *Project) Workspace() *v1.Workspace {
+	return &v1.Workspace{
 		ProjectID:       p.config.ProjectID,
 		VaultFilePath:   p.config.VaultFilePath,
 		ProjectFilePath: p.config.ProjectPath,

@@ -3,10 +3,10 @@ package commands
 import (
 	"context"
 
-	"github.com/tomdoesdev/knox/internal/project"
-	"github.com/tomdoesdev/knox/internal/runner"
-	"github.com/tomdoesdev/knox/internal/secrets"
-	"github.com/tomdoesdev/knox/internal/template"
+	"github.com/tomdoesdev/knox/internal/v1/project"
+	"github.com/tomdoesdev/knox/internal/v1/runner"
+	secrets2 "github.com/tomdoesdev/knox/internal/v1/secrets"
+	"github.com/tomdoesdev/knox/internal/v1/template"
 	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
@@ -53,7 +53,7 @@ func runCommand(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	workspace := proj.Workspace()
-	secretStore, err := secrets.NewFileSecretStore(workspace.VaultFilePath, workspace.ProjectID, secrets.NewNoOpEncryptionHandler())
+	secretStore, err := secrets2.NewFileSecretStore(workspace.VaultFilePath, workspace.ProjectID, secrets2.NewNoOpEncryptionHandler())
 	if err != nil {
 		return err
 	}

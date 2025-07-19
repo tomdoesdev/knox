@@ -1,6 +1,6 @@
 #!/usr/bin/env just --justfile
 run app="knox" *args="":
-  go run ./cmd/{{app}} {{args}}
+  go run ./cmd/v2/{{app}} {{args}}
 
 build:
   go build -tags "secure_delete" -o ./bin ./cmd/...

@@ -3,7 +3,7 @@ package commands
 import (
 	"context"
 
-	"github.com/tomdoesdev/knox/internal/project"
+	"github.com/tomdoesdev/knox/internal/v1/project"
 	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )

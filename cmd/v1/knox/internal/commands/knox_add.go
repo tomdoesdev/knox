@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/internal/v1"
 	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
@@ -37,7 +37,7 @@ func NewAddCommand() *cli.Command {
 	}
 }
 
-func addActionHandler(key, value string, k *internal.Knox) error {
+func addActionHandler(key, value string, k *v1.Knox) error {
 	if key == "" {
 		return errs.Wrap(
 			ErrInvalidArguments,

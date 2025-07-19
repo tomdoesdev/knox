@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/internal/secrets"
+	secrets2 "github.com/tomdoesdev/knox/internal/v1/secrets"
 )
 
 func TestIntegration_TemplateProcessingWithSecretStore(t *testing.T) {
@@ -26,7 +26,7 @@ func TestIntegration_TemplateProcessingWithSecretStore(t *testing.T) {
 	vaultPath := filepath.Join(tmpDir, "test.db")
 	projectID := "test-project"
 
-	store, err := secrets.NewFileSecretStore(vaultPath, projectID, secrets.NewNoOpEncryptionHandler())
+	store, err := secrets2.NewFileSecretStore(vaultPath, projectID, secrets2.NewNoOpEncryptionHandler())
 	if err != nil {
 		t.Fatalf("failed to create secret store: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestIntegration_ProcessFileOptional_WithoutTemplate(t *testing.T) {
 	vaultPath := filepath.Join(tmpDir, "test.db")
 	projectID := "test-project"
 
-	store, err := secrets.NewFileSecretStore(vaultPath, projectID, secrets.NewNoOpEncryptionHandler())
+	store, err := secrets2.NewFileSecretStore(vaultPath, projectID, secrets2.NewNoOpEncryptionHandler())
 	if err != nil {
 		t.Fatalf("failed to create secret store: %v", err)
 	}

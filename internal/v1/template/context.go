@@ -3,7 +3,7 @@ package template
 import (
 	"os"
 
-	"github.com/tomdoesdev/knox/internal/secrets"
+	"github.com/tomdoesdev/knox/internal/v1/secrets"
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
 

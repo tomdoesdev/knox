@@ -1,11 +1,11 @@
 package constants
 
 const (
-	DefaultVaultFileName   = "knox.vault"
+	DefaultVaultFileName   = "vault"
 	DefaultProjectFileName = "knox.json"
 )
 const (
-	DefaultKnoxDirName = "knox"
+	DefaultKnoxDirName = ".knox"
 )
 
 const (

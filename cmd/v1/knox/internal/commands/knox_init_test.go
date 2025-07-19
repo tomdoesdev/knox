@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tomdoesdev/knox/internal/constants"
-	"github.com/tomdoesdev/knox/internal/project"
+	"github.com/tomdoesdev/knox/internal/v1/constants"
+	"github.com/tomdoesdev/knox/internal/v1/project"
 	errors2 "github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )

@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/hashicorp/go-envparse"
-	"github.com/tomdoesdev/knox/internal/secrets"
+	"github.com/tomdoesdev/knox/internal/v1/secrets"
 	"github.com/tomdoesdev/knox/kit/fs"
 	"github.com/tomdoesdev/knox/pkg/errs"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/internal/v1"
 	"github.com/urfave/cli/v3"
 )
 
@@ -24,7 +24,7 @@ func NewRemoveCommand() *cli.Command {
 	}
 }
 
-func removeActionfunc(cmd *cli.Command, k *internal.Knox) error {
+func removeActionfunc(cmd *cli.Command, k *v1.Knox) error {
 	if cmd.Args().Len() != 1 {
 		return fmt.Errorf("expected 1 argument, got %d", cmd.Args().Len())
 	}

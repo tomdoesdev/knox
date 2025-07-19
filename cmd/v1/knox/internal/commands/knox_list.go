@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	secrets2 "github.com/tomdoesdev/knox/internal/secrets"
+	secrets2 "github.com/tomdoesdev/knox/internal/v1/secrets"
 	"github.com/urfave/cli/v3"
 )
 

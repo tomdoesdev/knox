@@ -36,3 +36,4 @@ bin/
 /knox.vault-shm
 /knox.vault-wal
 .claude/
+.test/
