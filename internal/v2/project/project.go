@@ -2,6 +2,7 @@ package project
 
 import (
 	"regexp"
+	"strings"
 
 	v2 "github.com/tomdoesdev/knox/internal/v2"
 	"github.com/tomdoesdev/knox/pkg/errs"
@@ -11,17 +12,35 @@ var (
 	ErrInvalidProjectName = errs.New(v2.InvalidIdentifierCode, "invalid project name")
 )
 
-func IsValidProjectName(name string) error {
+type Name string
+
+func NewName(s string) (Name, error) {
+	name := Name(s)
+
+	if err := isValidProjectName(name); err != nil {
+		return "", err
+	}
+
+	return name, nil
+}
+func (n Name) String() string {
+	return strings.ToLower(strings.TrimSpace(strings.ReplaceAll(string(n), " ", "_")))
+}
+
+func isValidProjectName(name Name) error {
+
 	if name == "" {
 		return ErrInvalidProjectName
 	}
 
-	//  - ^[a-zA-Z0-9_-]+ - Must start with alphanumeric, underscore, or hyphen (no slash)
-	// - (?:/[a-zA-Z0-9_-]+)* - Zero or more groups of: slash followed by alphanumeric/underscore/hyphen
-	//  - $ - Must end with alphanumeric, underscore, or hyphen (no slash)
-	pattern := `^[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*$`
+	/*
+		- ^[a-z0-9_-]+ - Must start with lowercase alphanumeric, underscore, or hyphen (no slash)
+		- (?:/[a-z0-9_-]+)* - Zero or more groups of: slash followed by lowercase alphanumeric/underscore/hyphen
+		- $ - Must end with alphanumeric, underscore, or hyphen (no slash)
+	*/
+	pattern := `^[a-z0-9_-]+(?:/[a-z0-9_-]+)*$`
 
-	matched, err := regexp.MatchString(pattern, name)
+	matched, err := regexp.MatchString(pattern, name.String())
 	if err != nil {
 		return errs.Wrap(err,
 			v2.InvalidIdentifierCode,

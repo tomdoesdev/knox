@@ -59,8 +59,8 @@ func workspaceHandler() error {
 	return nil
 }
 
-func projectHandler(name string) error {
-	err := project.IsValidProjectName(name)
+func projectHandler(s string) error {
+	name, err := project.NewName(s)
 	if err != nil {
 		return err
 	}
