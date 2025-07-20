@@ -8,16 +8,24 @@ import (
 	"github.com/tomdoesdev/knox/cmd/v2/knox/internal/commands"
 	"github.com/tomdoesdev/knox/internal/v2/vault"
 	"github.com/tomdoesdev/knox/kit/log"
+	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
-
 	log.NewSlog("text")
 
 	v, err := vault.OpenFileSystem()
 	if err != nil {
-		fmt.Println(err)
+		if errs.Is(err, vault.VaultConnectionCode) {
+			fmt.Printf("sqlite connection failed - check permissions: %s\n", err.Error())
+		} else if errs.Is(err, vault.VaultCreationCode) {
+			fmt.Printf("failed to create vault - check direcroty permissions: %s\n", err.Error())
+		} else {
+			fmt.Printf("failed to open vault: %s\n", err.Error())
+		}
+
+		os.Exit(1)
 	}
 
 	defer func(v *vault.Vault) {
