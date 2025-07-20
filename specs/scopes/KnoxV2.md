@@ -68,9 +68,11 @@ Knox v1 has been implemented with vault file location system, SQLite backend, an
 # Workspace & Project Management
 knox init                    # Creates .knox/ workspace in CWD
 knox new project <name>      # Creates new project in vault DB
+knox new vault <name>        # Creates new vault with optional workspace linking
 knox switch <name>           # Switch active project in workspace
 knox ls                      # List available projects
-knox rm project <name>       # Remove project from vault (with safeguards)
+knox delete project <name>@<vault>  # Remove project from specific vault
+knox delete vault <name>     # Remove vault (with confirmation)
 
 # Secret Management (within current project context)
 knox set <key> <value>       # Set secret in current project
@@ -200,7 +202,8 @@ CREATE TABLE secret_tags (
 
 **Knox v2.0 Core Tool:**
 - Workspace management (`knox init`)
-- Project lifecycle (`knox new project`, `knox switch`, `knox rm project`)
+- Project lifecycle (`knox new project`, `knox switch`, `knox delete project`)
+- Vault lifecycle (`knox new vault`, `knox delete vault`)
 - Secret management (`knox set`, `knox get`, `knox ls secrets`, `knox rm`)
 - Tagging system (`knox tag add/rm/ls`)
 - Entity lookup and name collision prevention

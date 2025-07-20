@@ -8,7 +8,7 @@ import (
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
-const Schema = `
+const vaultTableSchema = `
 CREATE TABLE IF NOT EXISTS projects (
 id integer primary key,
 name text not null unique,
@@ -64,7 +64,7 @@ func createSqliteFile(dsp string) error {
 			WithContext("path", dsp)
 	}
 
-	if _, err := db.Exec(Schema); err != nil {
+	if _, err := db.Exec(vaultTableSchema); err != nil {
 		return errs.Wrap(err, VaultCreationCode, "failed to create database schema").
 			WithContext("path", dsp)
 	}

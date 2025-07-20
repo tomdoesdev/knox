@@ -33,7 +33,7 @@ After drafting the Spec:
 
 ### Phase 3: Implementation
 
-ONLY after user types "GO!" or explicitly approves moving on:
+ONLY after user has answered ALL of your questions or explicitly approves moving on:
 
 You will:
 
