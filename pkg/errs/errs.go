@@ -3,6 +3,7 @@ package errs
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // ErrorCode represents different types of Knox errs
@@ -24,10 +25,26 @@ func New(code ErrorCode, message string) *KnoxError {
 }
 
 func (e *KnoxError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString(fmt.Sprintf("[%s] ", e.Code))
+	msg.WriteString(e.Message)
 	if e.Cause != nil {
-		return fmt.Sprintf("[%s] %s: %v", e.Code, e.Message, e.Cause)
+		msg.WriteString(e.Cause.Error())
 	}
-	return fmt.Sprintf("[%s] %s", e.Code, e.Message)
+
+	if e.Context != nil {
+		msg.WriteString(" | context: ")
+		first := true
+		for key, value := range e.Context {
+			if !first {
+				msg.WriteString(", ")
+			}
+			msg.WriteString(fmt.Sprintf("%s=%v", key, value))
+			first = false
+		}
+	}
+	return msg.String()
 }
 
 func (e *KnoxError) Unwrap() error {

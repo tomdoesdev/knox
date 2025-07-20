@@ -4,12 +4,15 @@ import (
 	"regexp"
 	"strings"
 
-	v2 "github.com/tomdoesdev/knox/internal/v2"
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
+const (
+	InvalidIdentifierCode errs.ErrorCode = "invalid_identifier"
+)
+
 var (
-	ErrInvalidProjectName = errs.New(v2.InvalidIdentifierCode, "invalid project name")
+	ErrInvalidProjectName = errs.New(InvalidIdentifierCode, "invalid project name")
 )
 
 type Name string
@@ -43,7 +46,7 @@ func isValidProjectName(name Name) error {
 	matched, err := regexp.MatchString(pattern, name.String())
 	if err != nil {
 		return errs.Wrap(err,
-			v2.InvalidIdentifierCode,
+			InvalidIdentifierCode,
 			"invalid project name").WithContext("value", name).WithContext("pattern", pattern)
 	}
 

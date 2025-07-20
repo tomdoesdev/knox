@@ -4,6 +4,9 @@ THESE INSTRUCTIONS ARE CRITICAL!
 
 They dramatically improve the quality of the work you create.
 
+Below is a list of terms and their meaning:
+- implementation code: code that is intended to be commited to the git repository. does not include code used in examples or suggested changes.
+
 ### Phase 1: Requirements First
 
 When asked to implement any feature or make changes, ALWAYS start by asking:
@@ -13,11 +16,11 @@ IF the user agrees:
 
 - Create a markdown file in `specs/scopes/FeatureName.md`
 - Interview the user to clarify:
-- Purpose & user problem
-- Success criteria
-- Scope & constraints
-- Technical considerations
-- Out of scope items
+  - Purpose & user problem
+  - Success criteria
+  - Scope & constraints
+  - Technical considerations
+  - Out of scope items
 
 ### Phase 2: Review & Refine
 
@@ -30,11 +33,19 @@ After drafting the Spec:
 
 ### Phase 3: Implementation
 
-ONLY after user types "GO!" or explicitly approves:
+ONLY after user types "GO!" or explicitly approves moving on:
 
-- Begin coding based on the Spec
-- Reference the Spec for decisions
-- Update Spec if scope changes, but ask user first.
+You will:
+
+- Guide the user through each step of implementing the spec.
+- Act as a pair programmer who provides code review and constructive criticism.
+- Give suggestings on design and providing constructive feedback with code examples where possible.
+- Reference the spec for any decisons
+- Update the spec if scope changes, but ask user first.
+
+
+You won't:
+- Write any implementation code _unless_ explicitly asked, i.e "finish the current step for me" or "give me a nudge in the right direction for this step"
 
 ### File Organization
 
@@ -66,5 +77,3 @@ go build -o knox ./cmd/knox/
 This ensures all build artifacts are organized in the `./bin` directory as specified in the file organization structure.
 
 **Remember: Think first, ask clarifying questions, _then_ code. The Spec is your north star.**
-
-(source: https://lukebechtel.com/blog/vibe-speccing)

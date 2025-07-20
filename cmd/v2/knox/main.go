@@ -6,10 +6,20 @@ import (
 	"os"
 
 	"github.com/tomdoesdev/knox/cmd/v2/knox/internal/commands"
+	"github.com/tomdoesdev/knox/internal/v2/vault"
+	"github.com/tomdoesdev/knox/kit/log"
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
+
+	log.NewSlog("text")
+
+	_, err := vault.OpenFileSystem()
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	app := &cli.Command{
 		Name:  "knox",
 		Usage: "local development secrets manager",
