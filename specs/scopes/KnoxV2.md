@@ -74,6 +74,12 @@ knox ls                      # List available projects
 knox delete project <name>@<vault>  # Remove project from specific vault
 knox delete vault <name>     # Remove vault (with confirmation)
 
+# Workspace Configuration
+knox config <key> <value>    # Set workspace configuration
+knox config <key>            # Get configuration value
+knox config --list           # List all workspace configuration
+knox config --unset <key>    # Remove configuration setting
+
 # Secret Management (within current project context)
 knox set <key> <value>       # Set secret in current project
 knox get <key>               # Get secret from current project
@@ -90,10 +96,10 @@ knox ls secrets --tag <tag>  # Filter secrets by tag
 
 **Workspace Structure:**
 ```
-/path/to/app/
-├── .knox/
-│   ├── config              # Workspace configuration
-│   └── current-project     # Tracks active project
+/path/to/my-app/           # Any directory can become a workspace
+├── .knox/                 # Workspace marker directory
+│   ├── workspace.db       # SQLite database (vaults/projects/metadata)
+│   └── current-project    # Active project name (plain text)
 ├── src/
 └── README.md
 ```
@@ -133,8 +139,10 @@ type Project struct {
 - Example: `knox secrets add -C API_KEY abc123`
 
 **Database Schema Updates:**
+
+*Vault Database Schema:*
 ```sql
--- Core tables
+-- Core tables (stored in each vault)
 CREATE TABLE projects (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,       -- No spaces, CLI-friendly
@@ -166,6 +174,56 @@ CREATE TABLE secret_tags (
     PRIMARY KEY (secret_id, tag),
     FOREIGN KEY (secret_id) REFERENCES secrets(id) ON DELETE CASCADE
 );
+```
+
+*Workspace Database Schema:*
+```sql
+-- Workspace database schema (stored in .knox/workspace.db)
+CREATE TABLE linked_vaults (
+    id INTEGER PRIMARY KEY,
+    alias TEXT NOT NULL UNIQUE,
+    path TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE linked_projects (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    vault_id INTEGER NOT NULL,
+    project_name TEXT, -- actual name in vault if different
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (vault_id) REFERENCES linked_vaults(id) ON DELETE CASCADE
+);
+
+CREATE TABLE workspace_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
+-- Examples:
+-- INSERT INTO workspace_meta VALUES ('workspace_version', 'v2');
+-- INSERT INTO workspace_meta VALUES ('workspace.default_project', 'myproject@myvault');
+-- INSERT INTO workspace_meta VALUES ('workspace.auto_switch', 'true');
+```
+
+**Multi-Vault Support:**
+- **Default vault**: `~/.knox/vault.db` (backward compatibility)
+- **Named vaults**: `~/.knox/vaults/<name>.db` for organization
+- **Workspace linking**: Link multiple vaults to workspaces with aliases
+- **@ notation**: Explicit vault specification (`knox delete project api@staging`)
+- **Vault creation**: `knox new vault <name>` with optional `--path` and `--link-as`
+- **Project targeting**: Each project exists in exactly one vault
+
+**File Organization:**
+```
+~/.knox/
+├── vault.db              # Default vault (backward compatibility)
+├── vaults/               # Named vaults directory
+│   ├── staging.db
+│   ├── production.db
+│   └── team_backend.db
+└── .knox/               # Workspace directories (created per project)
+    ├── workspace.db     # Links vaults to workspace + metadata
+    └── current-project  # Active project tracking (plain text)
 ```
 
 **Simplified Tagging:**
@@ -201,7 +259,7 @@ CREATE TABLE secret_tags (
 ## Scope
 
 **Knox v2.0 Core Tool:**
-- Workspace management (`knox init`)
+- Workspace management (`knox init`, `knox config`)
 - Project lifecycle (`knox new project`, `knox switch`, `knox delete project`)
 - Vault lifecycle (`knox new vault`, `knox delete vault`)
 - Secret management (`knox set`, `knox get`, `knox ls secrets`, `knox rm`)
