@@ -15,10 +15,17 @@ func main() {
 
 	log.NewSlog("text")
 
-	_, err := vault.OpenFileSystem()
+	v, err := vault.OpenFileSystem()
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	defer func(v *vault.Vault) {
+		err := v.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(v)
 
 	app := &cli.Command{
 		Name:  "knox",
