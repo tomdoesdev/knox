@@ -58,7 +58,7 @@ Knox v1 has been implemented with vault file location system, SQLite backend, an
 ## Knox v2 Core Design
 
 **Workspace-Project Architecture:**
-- **Workspace**: Directory marked with `.knox/` folder (like git repos)
+- **Workspace**: Directory marked with `.knox-workspace/` folder (like git repos)
 - **Project**: Managed entity in main vault database with proper lifecycle
 - **Project Switching**: Git-branch-like switching between projects within workspace
 - **Shared Projects**: Multiple workspaces can share the same project
@@ -66,7 +66,7 @@ Knox v1 has been implemented with vault file location system, SQLite backend, an
 **Git-Style Commands:**
 ```bash
 # Workspace & Project Management
-knox init                    # Creates .knox/ workspace in CWD
+knox init                    # Creates .knox-workspace/ workspace in CWD
 knox new project <name>      # Creates new project in vault DB
 knox new vault <name>        # Creates new vault with optional workspace linking
 knox switch <name>           # Switch active project in workspace
@@ -97,7 +97,7 @@ knox ls secrets --tag <tag>  # Filter secrets by tag
 **Workspace Structure:**
 ```
 /path/to/my-app/           # Any directory can become a workspace
-├── .knox/                 # Workspace marker directory
+├── .knox-workspace/       # Workspace marker directory
 │   ├── workspace.db       # SQLite database (vaults/projects/metadata)
 │   └── current-project    # Active project name (plain text)
 ├── src/
@@ -129,7 +129,7 @@ type Project struct {
 - No cross-project permission enforcement
 
 **Workspace Discovery:**
-- Like git: traverse up directory tree to find nearest `.knox/` folder
+- Like git: traverse up directory tree to find nearest `.knox-workspace/` folder
 - Commands work from any subdirectory within workspace
 
 **Project Context for Secrets:**
@@ -221,7 +221,7 @@ CREATE TABLE workspace_meta (
 │   ├── staging.db
 │   ├── production.db
 │   └── team_backend.db
-└── .knox/               # Workspace directories (created per project)
+└── .knox-workspace/     # Workspace directories (created per project)
     ├── workspace.db     # Links vaults to workspace + metadata
     └── current-project  # Active project tracking (plain text)
 ```

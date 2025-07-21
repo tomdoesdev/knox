@@ -1,4 +1,4 @@
-package workspace
+package database
 
 const tablesSchema = `
  CREATE TABLE linked_vaults (

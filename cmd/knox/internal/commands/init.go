@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tomdoesdev/knox/internal/v2/project"
+	"github.com/tomdoesdev/knox/internal/project"
 	"github.com/urfave/cli/v3"
 )
 

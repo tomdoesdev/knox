@@ -16,7 +16,7 @@ Define how Knox v2 workspaces function - the local directory context that tracks
 
 ```
 /path/to/my-app/           # Any directory can become a workspace
-├── .knox/                 # Workspace marker directory
+├── .knox-workspace/       # Workspace marker directory
 │   ├── workspace.db       # SQLite database for linked vaults/projects
 │   ├── config             # Minimal JSON config (version, current project)
 │   └── current-project    # Active project name (plain text)
@@ -31,7 +31,7 @@ Define how Knox v2 workspaces function - the local directory context that tracks
 func FindWorkspace() (*Workspace, error)
 ```
 - Start from current directory
-- Traverse up directory tree looking for `.knox/` folder
+- Traverse up directory tree looking for `.knox-workspace/` folder
 - Return workspace details or error if not found
 - Similar to `git rev-parse --show-toplevel`
 
@@ -39,7 +39,7 @@ func FindWorkspace() (*Workspace, error)
 ```go
 func CreateWorkspace(path string) (*Workspace, error)
 ```
-- Create `.knox/` directory in specified path
+- Create `.knox-workspace/` directory in specified path
 - Create `workspace.db` SQLite database with schema
 - Auto-link 'default' vault: `~/.knox/vault.db` or `$KNOX_ROOT/.knox/vault.db`
 - Create minimal JSON config with workspace version
@@ -50,7 +50,7 @@ func CreateWorkspace(path string) (*Workspace, error)
 ```go
 func IsWorkspace(path string) bool
 ```
-- Check if directory contains `.knox/` folder
+- Check if directory contains `.knox-workspace/` folder
 - Validate workspace structure
 
 ### 4. Project Context
@@ -63,7 +63,7 @@ func (w *Workspace) SetCurrentProject(name project.Name) error
 
 ## Workspace Configuration
 
-**Database: `.knox/workspace.db` (SQLite schema)**
+**Database: `.knox-workspace/workspace.db` (SQLite schema)**
 ```sql
 CREATE TABLE linked_vaults (
     id INTEGER PRIMARY KEY,
@@ -88,14 +88,14 @@ CREATE TABLE workspace_meta (
 -- Example: INSERT INTO workspace_meta VALUES ('version', 'v2'), ('default_project', 'backend-api');
 ```
 
-**File: `.knox/config` (minimal JSON, extensible design)**
+**File: `.knox-workspace/config` (minimal JSON, extensible design)**
 ```json
 {
   "workspace_version": "v2"
 }
 ```
 
-**File: `.knox/current-project` (plain text, git-style)**
+**File: `.knox-workspace/current-project` (plain text, git-style)**
 ```
 my-api
 ```
@@ -110,7 +110,7 @@ my-api
 ## Workspace Validation
 
 **Validation Strategy (middle ground):**
-1. Check `.knox/` directory exists
+1. Check `.knox-workspace/` directory exists
 2. Validate `workspace.db` contains valid schema
 3. If `current-project` file exists:
    - Query workspace database for linked project
@@ -123,7 +123,7 @@ my-api
 
 - **Not in workspace**: Clear message "Not in a Knox workspace. Run 'knox init' to create one."
 - **Invalid current project**: Warn and unset: "Project 'old-project' no longer exists. Current project unset."
-- **Permission errors**: Cannot create/read `.knox/` directory
+- **Permission errors**: Cannot create/read `.knox-workspace/` directory
 - **Detached workspace state**: When no current-project file exists:
   - Warn: "Workspace is in detached state. Use 'knox switch <project>' to attach to a project."
   - Commands requiring project context return error until user switches
@@ -158,7 +158,7 @@ my-api
 ```bash
 # Setup workspace (auto-links default vault)
 $ knox init
-Initialized empty Knox workspace in /path/to/my-app/.knox
+Initialized empty Knox workspace in /path/to/my-app/.knox-workspace
 Linked default vault 'default' (path: ~/.knox/vault.db)
 
 # Link additional vaults

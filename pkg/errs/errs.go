@@ -28,7 +28,7 @@ func (e *KnoxError) Error() string {
 	var msg strings.Builder
 
 	msg.WriteString(fmt.Sprintf("[%s] ", e.Code))
-	msg.WriteString(e.Message)
+	msg.WriteString(e.Message + ": ")
 	if e.Cause != nil {
 		msg.WriteString(e.Cause.Error())
 	}

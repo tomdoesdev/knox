@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tomdoesdev/knox/cmd/v2/knox/internal/commands"
-	"github.com/tomdoesdev/knox/internal/v2/vault"
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands"
+	vault2 "github.com/tomdoesdev/knox/internal/vault"
 	"github.com/tomdoesdev/knox/kit/log"
 	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
@@ -15,11 +15,11 @@ import (
 func main() {
 	log.NewSlog("text")
 
-	v, err := vault.OpenFileSystem()
+	v, err := vault2.OpenFileSystem()
 	if err != nil {
-		if errs.Is(err, vault.VaultConnectionCode) {
+		if errs.Is(err, vault2.VaultConnectionCode) {
 			fmt.Printf("sqlite connection failed - check permissions: %s\n", err.Error())
-		} else if errs.Is(err, vault.VaultCreationCode) {
+		} else if errs.Is(err, vault2.VaultCreationCode) {
 			fmt.Printf("failed to create vault - check direcroty permissions: %s\n", err.Error())
 		} else {
 			fmt.Printf("failed to open vault: %s\n", err.Error())
@@ -28,7 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	defer func(v *vault.Vault) {
+	defer func(v *vault2.Vault) {
 		err := v.Close()
 		if err != nil {
 			fmt.Println(err)
