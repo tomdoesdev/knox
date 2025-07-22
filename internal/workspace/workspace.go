@@ -9,10 +9,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tomdoesdev/knox/internal/workspace/constants"
 	"github.com/tomdoesdev/knox/internal/workspace/database"
-	"github.com/tomdoesdev/knox/internal/workspace/errors"
+	workspaceErrors "github.com/tomdoesdev/knox/internal/workspace/errors"
+	"github.com/tomdoesdev/knox/internal/errors"
 
 	"github.com/tomdoesdev/knox/kit/fs"
-	"github.com/tomdoesdev/knox/pkg/errs"
+	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 type InitResult string
@@ -61,7 +62,7 @@ func FindWorkspace(path string) (*Workspace, error) {
 
 		parentDir := filepath.Dir(currentDir)
 		if parentDir == currentDir {
-			return nil, errors.ErrNoWorkspace
+			return nil, workspaceErrors.ErrNoWorkspace
 		}
 		currentDir = parentDir
 	}
@@ -93,7 +94,7 @@ func EnsureWorkspace(path string) (InitResult, error) {
 func CreateWorkspace(path string) (*Workspace, error) {
 	if ContainsDataDirectory(path) {
 		slog.Debug("creating workspace", slog.String("path", path), slog.Bool("exists", true))
-		return nil, errors.ErrWorkspaceExists
+		return nil, workspaceErrors.ErrWorkspaceExists
 	}
 
 	dir := filepath.Join(path, constants.DataDirectoryName)
@@ -118,7 +119,7 @@ func CreateWorkspace(path string) (*Workspace, error) {
 
 func OpenWorkspace(path string) (*Workspace, error) {
 	if !ContainsDataDirectory(path) {
-		return nil, errors.ErrNoWorkspace.WithContext("path", path)
+		return nil, workspaceErrors.ErrNoWorkspace.WithContext("path", path)
 	}
 
 	dbPath := database.NewPath(path)

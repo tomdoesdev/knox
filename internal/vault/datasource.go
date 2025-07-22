@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/tomdoesdev/knox/kit/fs"
-	"github.com/tomdoesdev/knox/pkg/errs"
+	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 type Datasource string
@@ -33,8 +33,7 @@ func IsVault(datasourcePath string) (bool, error) {
 
 	db, err := sql.Open("sqlite3", datasourcePath)
 	if err != nil {
-		return false, errs.Wrap(err,
-			VaultConnectionCode,
+		return false, errs.Wrap(err, ErrVaultConnectionFailed.Code,
 			"failed to open database").
 			WithContext("datasourcePath", datasourcePath)
 	}
@@ -44,7 +43,7 @@ func IsVault(datasourcePath string) (bool, error) {
 
 	err = db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='secrets'").Scan(&result)
 	if err != nil {
-		return false, errs.Wrap(err, VaultIntegrityCode, "failed to check vault tables").
+		return false, errs.Wrap(err, ErrVaultIntegrityCheck.Code, "failed to check vault tables").
 			WithContext("datasourcePath", datasourcePath)
 	}
 
@@ -66,14 +65,14 @@ func NewFileSystemDatasource() (DatasourceProvider, error) {
 
 	err := updateFilesystemDatasourcePath(dsp)
 	if err != nil {
-		return nil, errs.Wrap(err, DatasourceCode, "failed to get datasource path")
+		return nil, errs.Wrap(err, ErrDatasourcePathInvalid.Code, "failed to get datasource path")
 	}
 
 	if !fs.IsDir(filepath.Dir(dsp.dsPath)) {
 		slog.Debug("creating directories")
 		err := os.MkdirAll(filepath.Dir(dsp.dsPath), 0700)
 		if err != nil {
-			return nil, errs.Wrap(err, VaultCreationCode, "failed to create datasource directory")
+			return nil, errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to create datasource directory")
 		}
 	}
 
@@ -94,8 +93,7 @@ func (f *filesystemDatasource) Datasource() (Datasource, error) {
 	}
 
 	if isVault, err := IsVault(f.dsPath); err != nil || !isVault {
-		return "", errs.Wrap(err,
-			DatasourceCode,
+		return "", errs.Wrap(err, ErrDatasourceUnreachable.Code,
 			"datasource is unreachable or not a valid sqlite file",
 		).WithContext("path", f.dsPath)
 	}
@@ -108,7 +106,7 @@ func (f *filesystemDatasource) Datasource() (Datasource, error) {
 func updateFilesystemDatasourcePath(f *filesystemDatasource) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return errs.Wrap(err, DatasourceCode, "failed to get user home directory")
+		return errs.Wrap(err, ErrDatasourcePathInvalid.Code, "failed to get user home directory")
 	}
 
 	if override, exists := os.LookupEnv(KnoxRootEnvVar); exists {

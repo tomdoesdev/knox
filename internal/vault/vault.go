@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/pkg/errs"
+	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 type Vault struct {
@@ -33,13 +33,13 @@ func Open(dsp DatasourceProvider) (*Vault, error) {
 
 	db, err := sql.Open("sqlite3", datasource.String())
 	if err != nil {
-		return nil, errs.Wrap(err, VaultConnectionCode, "failed to open database connection").
+		return nil, errs.Wrap(err, ErrVaultConnectionFailed.Code, "failed to open database connection").
 			WithContext("datasource", datasource.String())
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, errs.Wrap(err, VaultConnectionCode, "failed to ping database").
+		return nil, errs.Wrap(err, ErrVaultConnectionFailed.Code, "failed to ping database").
 			WithContext("datasource", datasource.String())
 	}
 

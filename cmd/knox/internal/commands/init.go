@@ -8,8 +8,8 @@ import (
 
 	"github.com/tomdoesdev/knox/internal/project"
 	"github.com/tomdoesdev/knox/internal/workspace"
-	"github.com/tomdoesdev/knox/internal/workspace/errors"
-	"github.com/tomdoesdev/knox/pkg/errs"
+	"github.com/tomdoesdev/knox/internal/errors"
+	"github.com/tomdoesdev/knox/kit/errs"
 	"github.com/urfave/cli/v3"
 )
 

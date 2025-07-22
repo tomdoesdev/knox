@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/pkg/errs"
+	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 const vaultTableSchema = `
@@ -49,7 +49,7 @@ func createSqliteFile(dsp string) error {
 
 	db, err := sql.Open("sqlite3", dsp)
 	if err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to open database for creation").
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to open database for creation").
 			WithContext("path", dsp)
 	}
 	defer func(db *sql.DB) {
@@ -60,12 +60,12 @@ func createSqliteFile(dsp string) error {
 	}(db)
 
 	if err := configureSQLiteSecurity(db); err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to configure SQLite security").
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to configure SQLite security").
 			WithContext("path", dsp)
 	}
 
 	if _, err := db.Exec(vaultTableSchema); err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to create database schema").
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to create database schema").
 			WithContext("path", dsp)
 	}
 
@@ -77,25 +77,25 @@ func configureSQLiteSecurity(db *sql.DB) error {
 	// Options: OFF (default), ON (secure), FAST (compromise)
 	_, err := db.Exec("PRAGMA secure_delete = FAST")
 	if err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to configure secure delete")
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to configure secure delete")
 	}
 
 	// Enable foreign key constraints for data integrity
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to enable foreign key constraints")
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to enable foreign key constraints")
 	}
 
 	// Set journal mode to WAL for better concurrency and crash recovery
 	_, err = db.Exec("PRAGMA journal_mode = WAL")
 	if err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to set WAL journal mode")
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to set WAL journal mode")
 	}
 
 	// Enable synchronous mode for better durability
 	_, err = db.Exec("PRAGMA synchronous = NORMAL")
 	if err != nil {
-		return errs.Wrap(err, VaultCreationCode, "failed to set synchronous mode")
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to set synchronous mode")
 	}
 
 	return nil

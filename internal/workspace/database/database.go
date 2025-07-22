@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tomdoesdev/knox/internal/errors"
 	"github.com/tomdoesdev/knox/internal/workspace/constants"
-	"github.com/tomdoesdev/knox/internal/workspace/errors"
+	workspaceErrors "github.com/tomdoesdev/knox/internal/workspace/errors"
+	"github.com/tomdoesdev/knox/kit/errs"
 	"github.com/tomdoesdev/knox/kit/fs"
-	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
 type Path struct {
@@ -92,7 +93,7 @@ func EnsureWorkspaceDatabase(path *Path) (*Database, error) {
 }
 func CreateWorkspaceDatabase(path *Path) (*Database, error) {
 	if exists := IsDatabaseExists(path); exists {
-		return nil, errs.Wrap(errors.ErrInvalidDatabase, errors.DatabaseFailureCode, "database already exists")
+		return nil, errs.Wrap(workspaceErrors.ErrInvalidDatabase, errors.DatabaseFailureCode, "database already exists")
 	}
 
 	db, err := sql.Open("sqlite3", path.ConnectionString())
@@ -106,7 +107,7 @@ func CreateWorkspaceDatabase(path *Path) (*Database, error) {
 	}
 
 	if !isValidWorkspaceDatabase(db) {
-		return nil, errors.ErrInvalidDatabase.WithContext("path", path)
+		return nil, workspaceErrors.ErrInvalidDatabase.WithContext("path", path)
 	}
 
 	return &Database{db: db}, nil
@@ -119,7 +120,7 @@ func OpenWorkspaceDatabase(path *Path) (*Database, error) {
 	}
 
 	if !isValidWorkspaceDatabase(db) {
-		return nil, errors.ErrInvalidDatabase.WithContext("path", path)
+		return nil, workspaceErrors.ErrInvalidDatabase.WithContext("path", path)
 	}
 
 	return &Database{db: db}, nil
