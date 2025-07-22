@@ -2,7 +2,6 @@ package vault
 
 import (
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -18,8 +17,6 @@ func (d Datasource) String() string {
 }
 
 func IsVault(datasourcePath string) (bool, error) {
-	slog.Debug("checking isVault")
-	slog.Debug("datasource is", "datasource", fmt.Sprintf("%v", datasourcePath))
 	var result string
 
 	if datasourcePath == ":memory:" {
@@ -119,7 +116,5 @@ func updateFilesystemDatasourcePath(f *filesystemDatasource) error {
 	}
 
 	f.dsPath = filepath.Join(home, DefaultDirName, DefaultFileName)
-	slog.Debug("updated fs datasource path", "path", f.dsPath)
-
 	return nil
 }

@@ -17,8 +17,10 @@ const tablesSchema = `
       FOREIGN KEY (vault_id) REFERENCES linked_vaults(id) ON DELETE CASCADE
   );
 
-  CREATE TABLE workspace_meta (
+  CREATE TABLE workspace_settings (
       key TEXT PRIMARY KEY,
-      value TEXT
+      value TEXT NOT NULL,
+      category TEXT NOT NULL, -- 'meta' or 'config'
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 `

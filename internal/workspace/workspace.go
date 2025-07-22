@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -8,18 +9,24 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tomdoesdev/knox/internal/workspace/constants"
 	"github.com/tomdoesdev/knox/internal/workspace/database"
-	database2 "github.com/tomdoesdev/knox/internal/workspace/database"
 	"github.com/tomdoesdev/knox/internal/workspace/errors"
 
 	"github.com/tomdoesdev/knox/kit/fs"
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
+type InitResult string
+
+const (
+	Created InitResult = "workspace_created"
+	Existed InitResult = "workspace_existed"
+)
+
 type Workspace struct {
-	db *database2.Database
+	db *database.Database
 }
 
-func newWorkspace(db *database2.Database) *Workspace {
+func newWorkspace(db *database.Database) *Workspace {
 	return &Workspace{db: db}
 }
 
@@ -60,24 +67,47 @@ func FindWorkspace(path string) (*Workspace, error) {
 	}
 }
 
+// EnsureWorkspace ensures that a workspace directory exists at the specified path.
+func EnsureWorkspace(path string) (InitResult, error) {
+	if ContainsDataDirectory(path) {
+		slog.Debug("ensuring workspace", slog.String("path", path), slog.Bool("exists", true))
+		_, err := OpenWorkspace(path)
+		if err != nil {
+			return "", err
+		}
+
+		return Existed, nil
+	}
+
+	slog.Debug("ensuring workspace", slog.String("path", path), slog.Bool("exists", false))
+	_, err := CreateWorkspace(path)
+	if err != nil {
+		return "", err
+	}
+
+	return Created, nil
+}
+
 // CreateWorkspace creates a workspace if one doesn't already exist
 // Returns ErrWorkspaceExists if the path is already a workspace
 func CreateWorkspace(path string) (*Workspace, error) {
 	if ContainsDataDirectory(path) {
-		// If a workspace already exists we abort.
-		return nil, errors.ErrWorkspaceExists.WithContext("path", path)
+		slog.Debug("creating workspace", slog.String("path", path), slog.Bool("exists", true))
+		return nil, errors.ErrWorkspaceExists
 	}
 
-	path = filepath.Join(path, constants.DataDirectoryName)
+	dir := filepath.Join(path, constants.DataDirectoryName)
 
-	if !fs.IsDir(path) {
-		err := os.MkdirAll(path, 0700)
+	if !fs.IsDir(dir) {
+		err := os.MkdirAll(dir, 0700)
 		if err != nil {
 			return nil, errs.Wrap(err, errors.CreateFailureCode, "failed to create workspace directory").WithContext("path", path)
 		}
 	}
 
-	db, err := database2.CreateWorkspaceDatabase(path)
+	dbPath := database.NewPath(path)
+
+	db, err := database.EnsureWorkspaceDatabase(dbPath)
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +121,9 @@ func OpenWorkspace(path string) (*Workspace, error) {
 		return nil, errors.ErrNoWorkspace.WithContext("path", path)
 	}
 
-	dbPath, err := database.newDatabasePath(path)
-	if err != nil {
-		return nil, err
-	}
+	dbPath := database.NewPath(path)
 
-	db, err := database2.OpenWorkspaceDatabase(dbPath)
+	db, err := database.OpenWorkspaceDatabase(dbPath)
 	if err != nil {
 		return nil, err
 	}

@@ -3,9 +3,13 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/tomdoesdev/knox/internal/project"
+	"github.com/tomdoesdev/knox/internal/workspace"
+	"github.com/tomdoesdev/knox/internal/workspace/errors"
+	"github.com/tomdoesdev/knox/pkg/errs"
 	"github.com/urfave/cli/v3"
 )
 
@@ -55,7 +59,29 @@ func newInitProjectCommand() *cli.Command {
 }
 
 func workspaceHandler() error {
-	fmt.Println("init workspace called")
+	cwd, err := os.Getwd()
+	if err != nil {
+		return errs.Wrap(err, errors.CreateFailureCode, "failed to get current working directory")
+	}
+
+	result, err := workspace.EnsureWorkspace(cwd)
+	if err != nil {
+		return errs.Wrap(err, errors.CreateFailureCode, "failed to ensure workspace")
+	}
+
+	switch result {
+	case workspace.Created:
+		fmt.Printf("initialized empty workspace in %s\n", cwd)
+		fmt.Println("workspace is in a detached state.")
+		break
+	case workspace.Existed:
+		//TODO: When we implement status we need to show the current state of the workspace
+		fmt.Printf("workspace already exists in %s\n", cwd)
+		break
+	default:
+		panic(fmt.Sprintf("unexpected result: %s", result))
+	}
+
 	return nil
 }
 

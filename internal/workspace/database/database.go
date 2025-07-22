@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"strings"
 
@@ -13,16 +14,34 @@ import (
 	"github.com/tomdoesdev/knox/pkg/errs"
 )
 
-type databasePath struct {
+type Path struct {
 	baseConnString string
 	path           string
 }
 
-func (p *databasePath) String() string {
+func NewPath(path string) *Path {
+	isDir := fs.IsDir(path)
+
+	if isDir {
+		if filepath.Base(path) != constants.DataDirectoryName {
+			path = filepath.Join(path, constants.DataDirectoryName, constants.DatabaseFileName)
+		}
+		if filepath.Base(path) != constants.DatabaseFileName {
+			filepath.Join(path, constants.DatabaseFileName)
+		}
+	}
+
+	slog.Debug("created database path", slog.String("given_path", path), slog.String("used_path", path))
+	dbp := Path{path: path}
+
+	return &dbp
+}
+
+func (p *Path) String() string {
 	return p.path
 }
 
-func (p *databasePath) ConnectionString(params ...string) string {
+func (p *Path) ConnectionString(params ...string) string {
 
 	if p.baseConnString == "" {
 		p.baseConnString = fmt.Sprintf("file:%s", p.path)
@@ -45,32 +64,8 @@ func (p *databasePath) ConnectionString(params ...string) string {
 	return builder.String()
 }
 
-func newDatabasePath(path string) (*databasePath, error) {
-	err := IsDatabaseExists(path)
-	if err != nil {
-		return nil, err
-	}
-
-	dbp := databasePath{path: path}
-
-	db, err := sql.Open("sqlite3", dbp.ConnectionString("mode=ro"))
-	if err != nil {
-		return nil, errs.Wrap(errors.ErrInvalidDatabase, errors.DatabaseFailureCode, "failed to open database")
-	}
-	defer func(db *sql.DB) {
-		_ = db.Close()
-	}(db)
-
-	err = db.Ping()
-	if err != nil {
-		return nil, errs.Wrap(errors.ErrInvalidDatabase, errors.DatabaseFailureCode, "failed to open database")
-	}
-
-	return &dbp, nil
-}
-
 const validationQuery = `
- SELECT COUNT(name) from main.sqlite_master WHERE type='table' AND name IN ('linked_vaults', 'linked_projects','workspace_meta');	
+ SELECT COUNT(name) from main.sqlite_master WHERE type='table' AND name IN ('linked_vaults', 'linked_projects','workspace_settings');	
 `
 
 type Database struct {
@@ -85,18 +80,22 @@ func (w *Database) Close() error {
 	return nil
 }
 
-func CreateWorkspaceDatabase(path string) (*Database, error) {
+func EnsureWorkspaceDatabase(path *Path) (*Database, error) {
+	if exists := IsDatabaseExists(path); exists {
+		slog.Debug("ensure database: database exists", slog.String("path", path.ConnectionString()))
+		return OpenWorkspaceDatabase(path)
+	}
 
-	if err := IsDatabaseExists(path); err != nil {
+	slog.Debug("ensure database: database doesnt exist", slog.String("path", path.ConnectionString()))
+	return CreateWorkspaceDatabase(path)
+
+}
+func CreateWorkspaceDatabase(path *Path) (*Database, error) {
+	if exists := IsDatabaseExists(path); exists {
 		return nil, errs.Wrap(errors.ErrInvalidDatabase, errors.DatabaseFailureCode, "database already exists")
 	}
 
-	dbp, err := newDatabasePath(path)
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := sql.Open("sqlite3", dbp.ConnectionString())
+	db, err := sql.Open("sqlite3", path.ConnectionString())
 	if err != nil {
 		return nil, errs.Wrap(err, errors.CreateFailureCode, "failed to open database").WithContext("path", path)
 	}
@@ -113,7 +112,7 @@ func CreateWorkspaceDatabase(path string) (*Database, error) {
 	return &Database{db: db}, nil
 }
 
-func OpenWorkspaceDatabase(path *databasePath) (*Database, error) {
+func OpenWorkspaceDatabase(path *Path) (*Database, error) {
 	db, err := sql.Open("sqlite3", path.ConnectionString())
 	if err != nil {
 		return nil, errs.Wrap(err, errors.CreateFailureCode, "failed to open database").WithContext("path", path)
@@ -142,22 +141,25 @@ func isValidWorkspaceDatabase(db *sql.DB) bool {
 
 }
 
-func IsDatabaseExists(path string) error {
-	exists, err := fs.IsExist(path)
+func IsDatabaseExists(path *Path) bool {
+	exists, err := fs.IsExist(path.String())
 	if err != nil {
-		return errors.ErrDatabasePathInvalid.WithContext("path", path)
+		return false
 	}
 
 	if !exists {
-		return errors.ErrDatabasePathInvalid.WithContext("path", path).WithContext("exists", exists)
+		return false
 	}
 
-	if fs.IsDir(path) && filepath.Base(path) != constants.DataDirectoryName {
-		return errors.ErrDatabasePathInvalid.WithContext("msg", "no workspace directory")
+	if fs.IsDir(path.String()) && filepath.Base(path.String()) != constants.DataDirectoryName {
+		// No workspace data dir
+		return false
 	}
 
-	if fs.IsFile(path) && filepath.Base(path) != constants.DatabaseFileName {
-		return errs.Wrap(errors.ErrInvalidDatabase, errors.DatabaseFailureCode, "no database file")
+	if fs.IsFile(path.String()) && filepath.Base(path.String()) != constants.DatabaseFileName {
+		// No database file
+		return false
 	}
-	return nil
+
+	return true
 }
