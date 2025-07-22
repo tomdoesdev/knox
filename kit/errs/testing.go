@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-// AssertErrorCode checks if an error has the expected Knox error code
-func AssertErrorCode(t *testing.T, err error, expectedCode ErrorCode) {
+// AssertErrorCode checks if an error has the expected error code
+func AssertErrorCode(t *testing.T, err error, expectedCode Code) {
 	t.Helper()
 
 	if err == nil {
@@ -14,7 +14,7 @@ func AssertErrorCode(t *testing.T, err error, expectedCode ErrorCode) {
 	}
 
 	if !Is(err, expectedCode) {
-		actualCode := Code(err)
+		actualCode := GetCode(err)
 		t.Errorf("Expected error code %s, got %s (error: %v)", expectedCode, actualCode, err)
 	}
 }
@@ -41,26 +41,26 @@ func AssertErrorContains(t *testing.T, err error, expectedText string) {
 	}
 }
 
-// AssertKnoxError checks if an error is a Knox error with specific properties
-func AssertKnoxError(t *testing.T, err error, expectedCode ErrorCode, expectedMessage string) {
+// AssertError checks if an error is a structured error with specific properties
+func AssertError(t *testing.T, err error, expectedCode Code, expectedMessage string) {
 	t.Helper()
 
-	var knoxErr *KnoxError
-	if !AsKnoxError(err, &knoxErr) {
-		t.Fatalf("Expected Knox error, got: %T (%v)", err, err)
+	var structuredErr *Error
+	if !AsError(err, &structuredErr) {
+		t.Fatalf("Expected structured error, got: %T (%v)", err, err)
 	}
 
-	if knoxErr.Code != expectedCode {
-		t.Errorf("Expected error code %s, got %s", expectedCode, knoxErr.Code)
+	if structuredErr.Code != expectedCode {
+		t.Errorf("Expected error code %s, got %s", expectedCode, structuredErr.Code)
 	}
 
-	if expectedMessage != "" && knoxErr.Message != expectedMessage {
-		t.Errorf("Expected error message '%s', got '%s'", expectedMessage, knoxErr.Message)
+	if expectedMessage != "" && structuredErr.Message != expectedMessage {
+		t.Errorf("Expected error message '%s', got '%s'", expectedMessage, structuredErr.Message)
 	}
 }
 
-// AsKnoxError is a helper that checks if an error is a Knox error
-func AsKnoxError(err error, target **KnoxError) bool {
+// AsError is a helper that checks if an error is a structured error
+func AsError(err error, target **Error) bool {
 	return errors.As(err, target)
 }
 
