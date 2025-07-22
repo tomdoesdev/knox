@@ -69,16 +69,23 @@ Knox v1 has been implemented with vault file location system, SQLite backend, an
 knox init                    # Creates .knox-workspace/ workspace in CWD
 knox new project <name>      # Creates new project in vault DB
 knox new vault <name>        # Creates new vault with optional workspace linking
+knox link <project>@<vault>  # Link project to workspace using @ notation
+knox link <vault-path> --as <alias>  # Link vault to workspace
+knox unlink <name>           # Remove vault or project from workspace
 knox switch <name>           # Switch active project in workspace
+knox status                  # Show current workspace status (active project, linked vaults/projects)
 knox ls                      # List available projects
+knox ls --linked             # Show linked vaults and projects in workspace
 knox delete project <name>@<vault>  # Remove project from specific vault
 knox delete vault <name>     # Remove vault (with confirmation)
 
-# Workspace Configuration
-knox config <key> <value>    # Set workspace configuration
+# Workspace Configuration (Enhanced TEXT with Registry)
+knox config <key> <value>    # Set workspace configuration (validated by registry)
 knox config <key>            # Get configuration value
 knox config --list           # List all workspace configuration
 knox config --unset <key>    # Remove configuration setting
+# Examples: knox config current_project myapi@staging
+#          knox config default_output_format json
 
 # Secret Management (within current project context)
 knox set <key> <value>       # Set secret in current project
@@ -86,20 +93,13 @@ knox get <key>               # Get secret from current project
 knox ls secrets              # List secrets in current project
 knox rm <key>                # Remove secret from current project
 
-# Tagging (works on both projects and secrets via entity lookup)
-knox tag add <entity> <tag>  # Add tag to project or secret
-knox tag rm <entity> <tag>   # Remove tag from project or secret
-knox tag ls <entity>         # List tags for project or secret
-knox ls --tag <tag>          # Filter projects by tag
-knox ls secrets --tag <tag>  # Filter secrets by tag
 ```
 
 **Workspace Structure:**
 ```
 /path/to/my-app/           # Any directory can become a workspace
 ├── .knox-workspace/       # Workspace marker directory
-│   ├── workspace.db       # SQLite database (vaults/projects/metadata)
-│   └── current-project    # Active project name (plain text)
+│   └── workspace.db       # SQLite database (vaults/projects/settings - everything)
 ├── src/
 └── README.md
 ```
@@ -110,6 +110,9 @@ knox ls secrets --tag <tag>  # Filter secrets by tag
 - Multiple apps can share projects
 - No orphaned secrets from deleted knox.json files
 - Git-like workflow familiarity
+- Enhanced TEXT design: debuggable storage with type-safe API
+- Registry-based validation prevents invalid configurations
+- Single source of truth for all workspace state
 
 ## Technical Considerations
 
@@ -118,7 +121,6 @@ knox ls secrets --tag <tag>  # Filter secrets by tag
 type Project struct {
     Name        string   // No spaces, CLI-friendly (e.g., "my-api")
     Description string   // Human-readable description
-    Tags        []string // Optional: for categorization/search
 }
 ```
 
@@ -160,20 +162,6 @@ CREATE TABLE secrets (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
--- Direct tagging tables (no entity lookup needed)
-CREATE TABLE project_tags (
-    project_id INTEGER NOT NULL,
-    tag TEXT NOT NULL,
-    PRIMARY KEY (project_id, tag),
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-);
-
-CREATE TABLE secret_tags (
-    secret_id INTEGER NOT NULL,
-    tag TEXT NOT NULL,
-    PRIMARY KEY (secret_id, tag),
-    FOREIGN KEY (secret_id) REFERENCES secrets(id) ON DELETE CASCADE
-);
 ```
 
 *Workspace Database Schema:*
@@ -195,18 +183,20 @@ CREATE TABLE linked_projects (
     FOREIGN KEY (vault_id) REFERENCES linked_vaults(id) ON DELETE CASCADE
 );
 
-CREATE TABLE workspace_meta (
+CREATE TABLE workspace_settings (
     key TEXT PRIMARY KEY,
-    value TEXT
+    value TEXT NOT NULL,
+    category TEXT NOT NULL, -- 'meta' or 'config'
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 -- Examples:
--- INSERT INTO workspace_meta VALUES ('workspace_version', 'v2');
--- INSERT INTO workspace_meta VALUES ('workspace.default_project', 'myproject@myvault');
--- INSERT INTO workspace_meta VALUES ('workspace.auto_switch', 'true');
+-- INSERT INTO workspace_settings VALUES ('meta.knox_version', 'v2', 'meta', '2024-01-15T10:30:00Z');
+-- INSERT INTO workspace_settings VALUES ('config.current_project', 'myproject@myvault', 'config', '2024-01-15T10:30:00Z');
+-- INSERT INTO workspace_settings VALUES ('config.auto_vault_discovery', 'true', 'config', '2024-01-15T10:30:00Z');
 ```
 
 **Multi-Vault Support:**
-- **Default vault**: `~/.knox/vault.db` (backward compatibility)
+- **Default vault**: `~/.knox/vaults/default.db` (standardized location)
 - **Named vaults**: `~/.knox/vaults/<name>.db` for organization
 - **Workspace linking**: Link multiple vaults to workspaces with aliases
 - **@ notation**: Explicit vault specification (`knox delete project api@staging`)
@@ -216,21 +206,45 @@ CREATE TABLE workspace_meta (
 **File Organization:**
 ```
 ~/.knox/
-├── vault.db              # Default vault (backward compatibility)
-├── vaults/               # Named vaults directory
-│   ├── staging.db
-│   ├── production.db
-│   └── team_backend.db
-└── .knox-workspace/     # Workspace directories (created per project)
-    ├── workspace.db     # Links vaults to workspace + metadata
-    └── current-project  # Active project tracking (plain text)
+└── vaults/               # All vaults directory
+    ├── default.db        # Default vault
+    ├── staging.db
+    ├── production.db
+    └── team_backend.db
+
+# Workspace directories (created per project)
+/path/to/my-app/.knox-workspace/
+└── workspace.db         # Links vaults + settings (Enhanced TEXT design - everything)
 ```
 
-**Simplified Tagging:**
-- Direct relationships between projects/secrets and tags
-- No entity lookup table needed
-- No name collision concerns (projects and secrets can share names)
-- Cleaner CLI implementation
+**Enhanced TEXT Configuration Design:**
+- **Registry-based validation**: All workspace settings defined in code-based registry
+- **Type-safe API**: Dedicated methods for bool, int, string types with automatic validation
+- **Debuggable storage**: Settings stored as human-readable TEXT in database
+- **Semantic organization**: `config.*` for user settings, `meta.*` for system metadata
+- **Single table design**: All settings in `workspace_settings` table with category column
+- **SQL-friendly**: Can query and filter settings directly with standard SQL
+- **Self-documenting**: Settings registry serves as live documentation
+
+**Settings Registry Examples:**
+```go
+// Built-in workspace settings registry
+var WorkspaceSettings = map[string]SettingDefinition{
+    "config.current_project": {
+        DataType: "string", Category: "config",
+        Description: "Active project name in project@vault format",
+    },
+    "config.default_output_format": {
+        DataType: "string", Category: "config",
+        DefaultValue: "text", Validator: validateOutputFormat,
+    },
+    "meta.created_at": {
+        DataType: "string", Category: "meta",
+        Description: "Workspace creation timestamp",
+    },
+}
+```
+
 
 **Output Formats:**
 - Modular output system supporting multiple formats
@@ -248,6 +262,12 @@ CREATE TABLE workspace_meta (
 - Design error handling architecture to easily support specific exit codes in future
 - Use structured error types internally for potential exit code mapping
 
+**Command Equivalence:**
+- `knox switch <project@vault>` ≡ `knox config current_project <project@vault>`
+- Unified configuration model where project switching is just setting configuration
+- Type-safe helpers: `workspace.SetConfigBool("auto_discovery", true)`
+- String-based API: `workspace.SetConfig("current_project", "api@staging")`
+
 **Migration Strategy:**
 - No automatic migration needed (single user)
 - User will manually re-add secrets to new v2 projects
@@ -259,14 +279,18 @@ CREATE TABLE workspace_meta (
 ## Scope
 
 **Knox v2.0 Core Tool:**
-- Workspace management (`knox init`, `knox config`)
+- Workspace management (`knox init`, `knox config`, `knox status`)
 - Project lifecycle (`knox new project`, `knox switch`, `knox delete project`)
 - Vault lifecycle (`knox new vault`, `knox delete vault`)
 - Secret management (`knox set`, `knox get`, `knox ls secrets`, `knox rm`)
-- Tagging system (`knox tag add/rm/ls`)
-- Entity lookup and name collision prevention
+- Workspace linking (`knox link`, `knox unlink`, `knox tidy`)
 - Multi-format output (text, JSON, YAML)
 - Cross-platform workspace discovery
+
+**Future Features:**
+- Tagging system for projects and secrets (`knox tag add/rm/ls`, filtering with `--tag`)
+- Entity lookup and name collision prevention for tags
+- Advanced search and filtering capabilities
 
 **Future Tools:**
 - `knox-run-env`: Template processing and execution tool
