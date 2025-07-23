@@ -9,35 +9,22 @@ import (
 )
 
 const vaultTableSchema = `
-CREATE TABLE IF NOT EXISTS projects (
-id integer primary key,
-name text not null unique,
-description text
-);
-
 CREATE TABLE IF NOT EXISTS secrets (
-id INTEGER PRIMARY KEY,
-project_id integer not null,
-key TEXT NOT NULL,
-value TEXT NOT NULL,
+    id INTEGER PRIMARY KEY,
+	collection_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-UNIQUE (project_id,key),
-FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+UNIQUE (collection_id, key),
+FOREIGN KEY (collection_id) REFERENCES collections(id)
 );
 
-CREATE TABLE IF NOT EXISTS secret_tags (
-secret_id integer not null,
-tag text not null,
-
-PRIMARY KEY (secret_id, tag),
-FOREIGN KEY (secret_id) REFERENCES secrets(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS project_tags (
-project_id integer not null, 
-tag text not null,
-PRIMARY KEY (project_id, tag),
-FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS collections(
+	id INTEGER PRIMARY KEY,
+	name TEXT NOT NULL UNIQUE,
+	description TEXT
 );
 `
 
@@ -66,6 +53,13 @@ func createSqliteFile(dsp string) error {
 
 	if _, err := db.Exec(vaultTableSchema); err != nil {
 		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to create database schema").
+			WithContext("path", dsp)
+	}
+
+	// Create default 'global' collection
+	_, err = db.Exec("INSERT INTO collections (name, description) VALUES ('global', 'Default collection for vault')")
+	if err != nil {
+		return errs.Wrap(err, ErrVaultCreationFailed.Code, "failed to create default global collection").
 			WithContext("path", dsp)
 	}
 

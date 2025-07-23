@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"github.com/tomdoesdev/knox/cmd/knox/internal/commands"
+	"github.com/tomdoesdev/knox/internal"
 	vault2 "github.com/tomdoesdev/knox/internal/vault"
-	"github.com/tomdoesdev/knox/kit/log"
 	"github.com/tomdoesdev/knox/kit/errs"
-	"github.com/tomdoesdev/knox/internal/errors"
+	"github.com/tomdoesdev/knox/kit/log"
 	"github.com/urfave/cli/v3"
 )
 
@@ -18,9 +18,9 @@ func main() {
 
 	v, err := vault2.OpenFileSystem()
 	if err != nil {
-		if errs.Is(err, errors.VaultConnectionCode) {
+		if errs.Is(err, internal.VaultConnectionCode) {
 			fmt.Printf("sqlite connection failed - check permissions: %s\n", err.Error())
-		} else if errs.Is(err, errors.VaultCreationCode) {
+		} else if errs.Is(err, internal.VaultCreationCode) {
 			fmt.Printf("failed to create vault - check direcroty permissions: %s\n", err.Error())
 		} else {
 			fmt.Printf("failed to open vault: %s\n", err.Error())
@@ -41,6 +41,10 @@ func main() {
 		Usage: "local development secrets manager",
 		Commands: []*cli.Command{
 			commands.NewInitCommand(),
+			commands.NewNewCommand(),
+			commands.NewProjectCommand(),
+			commands.NewLinkCommand(),
+			commands.NewStatusCommand(),
 		},
 	}
 

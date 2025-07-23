@@ -4,11 +4,11 @@ Assistant/pair programmer. User writes code. Ask permission before generating co
 ## Workflow: Spec → Code
 **CRITICAL**: Always ask "Should we create a Spec for this task first?"
 
-1. **Requirements**: Create `docs/specs/FeatureName.md` (purpose, success criteria, scope, technical considerations, out of scope)
+1. **Requirements**: Create `docs/specs/FeatureName.md` (think hard about purpose, success criteria, scope, technical considerations and out of scope)
 2. **Review**: Present spec, iterate until approved. End with "Type 'GO!' when ready"
 3. **Implementation**: After 'GO!', guide user step-by-step. User implements each step. Only write code if user explicitly asks to "finish this step".
 
-**Rule: Think first, ask questions, then code. Spec is north star.**
+**Rule: Think hard first, ask questions, then code. Spec is north star.**
 
 ## Structure
 ```

@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tomdoesdev/knox/kit/fs"
 	"github.com/tomdoesdev/knox/kit/errs"
 )
 
@@ -17,7 +16,6 @@ func (d Datasource) String() string {
 }
 
 func IsVault(datasourcePath string) (bool, error) {
-	var result string
 
 	if datasourcePath == ":memory:" {
 		return true, nil
@@ -41,13 +39,15 @@ func IsVault(datasourcePath string) (bool, error) {
 		_ = db.Close()
 	}(db)
 
-	err = db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='secrets'").Scan(&result)
+	// Check for both secrets and collections tables
+	var tableCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('secrets', 'collections')").Scan(&tableCount)
 	if err != nil {
 		return false, errs.Wrap(err, ErrVaultIntegrityCheck.Code, "failed to check vault tables").
 			WithContext("datasourcePath", datasourcePath)
 	}
 
-	return result == "secrets", nil
+	return tableCount == 2, nil
 
 }
 
