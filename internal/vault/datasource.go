@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/tomdoesdev/knox/kit/errs"
+	"github.com/tomdoesdev/knox/kit/fs"
 )
 
 type Datasource string

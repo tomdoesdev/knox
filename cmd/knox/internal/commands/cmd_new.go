@@ -85,9 +85,8 @@ func newNewVaultCommand() *cli.Command {
 		ArgsUsage: "<vault-alias>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "path",
-				Usage:    "path where vault will be created",
-				Required: true,
+				Name:  "path",
+				Usage: "path where vault will be created (defaults to $KNOX_ROOT/vaults or ~/.knox/vaults)",
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -104,6 +103,15 @@ func newNewVaultCommand() *cli.Command {
 }
 
 func newVaultHandler(alias, vaultPath string) error {
+	// If no path provided, generate default path
+	if vaultPath == "" {
+		defaultPath, err := getDefaultVaultPath(alias)
+		if err != nil {
+			return errs.Wrap(err, internal.ValidationCode, "failed to generate default vault path")
+		}
+		vaultPath = defaultPath
+	}
+
 	// Get current working directory to find workspace
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -129,7 +137,7 @@ func newVaultHandler(alias, vaultPath string) error {
 
 	// Create the vault directory if it doesn't exist
 	vaultDir := filepath.Dir(absPath)
-	if err := os.MkdirAll(vaultDir, 0755); err != nil {
+	if err := ensureVaultDirectory(vaultDir); err != nil {
 		return errs.Wrap(err, internal.VaultCreationCode, "failed to create vault directory").WithContext("path", vaultDir)
 	}
 
@@ -203,4 +211,58 @@ func createVaultAtPath(path string) error {
 	// Move the created vault.db to our desired location
 	tempVaultPath := filepath.Join(tempKnoxDir, ".knox", "vault.db")
 	return os.Rename(tempVaultPath, path)
+}
+
+// getDefaultVaultPath generates the default vault path based on KNOX_ROOT or user home
+func getDefaultVaultPath(alias string) (string, error) {
+	var baseDir string
+
+	// Check for KNOX_ROOT environment variable first
+	if knoxRoot := os.Getenv("KNOX_ROOT"); knoxRoot != "" {
+		baseDir = knoxRoot
+	} else {
+		// Fall back to user home directory
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", errs.Wrap(err, internal.ValidationCode, "failed to get user home directory")
+		}
+		baseDir = filepath.Join(home, ".knox")
+	}
+
+	// Create vaults directory path
+	vaultsDir := filepath.Join(baseDir, "vaults")
+
+	// Generate filename using alias
+	filename := alias + ".db"
+
+	return filepath.Join(vaultsDir, filename), nil
+}
+
+// ensureVaultDirectory ensures the vault directory exists and handles conflicts
+func ensureVaultDirectory(dir string) error {
+	// Check if path exists
+	info, err := os.Stat(dir)
+	if err == nil {
+		// Path exists - check if it's a directory
+		if !info.IsDir() {
+			return errs.New(internal.VaultCreationCode, "vault directory path exists but is not a directory").WithContext("path", dir)
+		}
+		// Directory already exists, we're good
+		return nil
+	}
+
+	// Path doesn't exist - check if parent directories have conflicts
+	parent := filepath.Dir(dir)
+	if parent != dir { // Avoid infinite recursion at root
+		if err := ensureVaultDirectory(parent); err != nil {
+			return err
+		}
+	}
+
+	// Create the directory
+	if err := os.Mkdir(dir, 0755); err != nil {
+		return errs.Wrap(err, internal.VaultCreationCode, "failed to create directory")
+	}
+
+	return nil
 }
