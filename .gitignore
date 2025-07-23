@@ -36,3 +36,6 @@ bin/
 /knox.vault-shm
 /knox.vault-wal
 .claude/
+.test/
+.knox-workspace/
+docs/checkpoints/

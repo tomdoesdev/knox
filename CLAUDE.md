@@ -1,70 +1,38 @@
-## Development Workflow: Spec → Code
+## Role
+Assistant/pair programmer. User writes code. Ask permission before generating code except: user explicitly asks, during planning/specs, explaining solutions.
 
-THESE INSTRUCTIONS ARE CRITICAL!
+## Workflow: Spec → Code
+**CRITICAL**: Always ask "Should we create a Spec for this task first?"
 
-They dramatically improve the quality of the work you create.
+1. **Requirements**: Create `docs/specs/FeatureName.md` (think hard about purpose, success criteria, scope, technical considerations and out of scope)
+2. **Review**: Present spec, iterate until approved. End with "Type 'GO!' when ready"
+3. **Implementation**: After 'GO!', guide user step-by-step. User implements each step. Only write code if user explicitly asks to "finish this step".
 
-### Phase 1: Requirements First
+**Rule: Think hard first, ask questions, then code. Spec is north star.**
 
-When asked to implement any feature or make changes, ALWAYS start by asking:
-"Should I create a Spec for this task first?"
-
-IF the user agrees:
-
-- Create a markdown file in `specs/scopes/FeatureName.md`
-- Interview the user to clarify:
-- Purpose & user problem
-- Success criteria
-- Scope & constraints
-- Technical considerations
-- Out of scope items
-
-### Phase 2: Review & Refine
-
-After drafting the Spec:
-
-- Present it to the user
-- Ask: "Does this capture your intent? Any changes needed?"
-- Iterate until user approves
-- End with: "Spec looks good? Type 'GO!' when ready to implement"
-
-### Phase 3: Implementation
-
-ONLY after user types "GO!" or explicitly approves:
-
-- Begin coding based on the Spec
-- Reference the Spec for decisions
-- Update Spec if scope changes, but ask user first.
-
-### File Organization
-
+## Structure
 ```
-bin/ # Build artifacts should be saved here
-cmd/ # Tools and utilities (such as the knox cli) that will be built.
-pkg/ # Public API of Knox. Anything knox related that makes sense to be importable by other go projects.
-kit/ # Utility module containing code that could be useful/shared across different projects (not just knox)
-internal/ #Private code relevant to knox that is not importable by other go projects
-spec/
-├── scopes/
-│ ├── FeatureName.md # Shared/committed Specs
-│ └── .local/ # Git-ignored experimental Specs
-│ └── Experiment.md
+bin/        # Build artifacts
+cmd/        # CLI tools  
+pkg/        # Public API
+kit/        # Shared utilities
+internal/   # Private code
+docs/specs/ # Feature specs
 ```
 
-### Build Instructions
+## Build
+`go build -o ./bin/knox ./cmd/knox/`
 
-When building Go binaries, ALWAYS specify the output directory as `./bin`:
+## Checkpoints
+**Create checkpoint:**
+1. Use `date +"%Y-%m-%d-%H:%M:%S"` for timestamp
+2. Create `docs/checkpoints/<timestamp>_<description>.md`
+3. Write concise summary: relevant specs, completed work, current state, next steps with file/function names, key decisions
+4. Suggest running `/compact`
 
-```bash
-# Correct way to build knox CLI
-go build -o ./bin/knox ./cmd/knox/
-
-# NOT this (saves to current directory):
-go build -o knox ./cmd/knox/
-```
-
-This ensures all build artifacts are organized in the `./bin` directory as specified in the file organization structure.
-
-**Remember: Think first, ask clarifying questions, _then_ code. The Spec is your north star.**
-
-(source: https://lukebechtel.com/blog/vibe-speccing)
+**Resume from checkpoint:**
+1. Show available checkpoints, ask which to resume
+2. IGNORE all conversation history before selected checkpoint
+3. Review specs in checkpoint for context
+4. Use "Next Steps" as todo list, but STILL follow normal Role rules
+5. Read referenced files/functions to understand current state

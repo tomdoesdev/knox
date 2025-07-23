@@ -33,8 +33,9 @@ func IsDir(path string) bool {
 
 	info, err := os.Stat(path)
 	if err != nil {
-		panic(fmt.Errorf("pathutil: stat %q: %w", path, err))
+		return false
 	}
+
 	return info.IsDir()
 }
 
@@ -44,9 +45,9 @@ func IsFile(path string) bool {
 	}
 	path = filepath.Clean(path)
 
-	info, err := os.Stat(path)
+	info, err := os.Lstat(path)
 	if err != nil {
-		panic(fmt.Errorf("pathutil: stat %q: %w", path, err))
+		return false
 	}
 	return info.Mode().IsRegular()
 }
