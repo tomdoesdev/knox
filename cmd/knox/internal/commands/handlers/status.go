@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common"
-	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common/output"
-	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common/output/formatters/plain"
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/renderers/cli"
 	"github.com/tomdoesdev/knox/internal/workspace"
+	"github.com/tomdoesdev/knox/kit/ast"
 )
 
 func StatusHandler() error {
@@ -18,13 +18,13 @@ func StatusHandler() error {
 			return err
 		}
 
-		// Create the output tree using v2 system
-		root := output.NewRoot()
+		// Create the AST tree
+		root := ast.NewRoot()
 
 		// Workspace Directory section
-		workspaceDirHeading := output.NewHeading("Workspace Directory")
-		workspaceDirHeading.Add(output.NewText(cwd))
-		root.Add(workspaceDirHeading)
+		workspaceDirHeading := ast.NewHeading("Workspace Directory")
+		workspaceDirHeading.AddChild(ast.Text(cwd))
+		root.AddChild(workspaceDirHeading)
 
 		// Projects section
 		projects, err := ws.ListProjects()
@@ -32,25 +32,27 @@ func StatusHandler() error {
 			return err
 		}
 
-		projectsHeading := output.NewHeading("Projects")
+		projectsHeading := ast.NewHeading("Projects")
 		if len(projects) == 0 {
-			projectsHeading.Add(output.NewText("none"))
+			projectsHeading.AddChild(ast.Text("none"))
 		} else {
-			projectsList := output.NewList()
+			projectsList := ast.NewList()
 
 			// Get current active project
 			currentProject, _ := ws.CurrentProject()
 
 			for _, project := range projects {
+				listItem := ast.NewListItem(project)
 				if project == currentProject {
-					projectsList.Add(output.NewListItem(project + "   [active]"))
-				} else {
-					projectsList.Add(output.NewListItem(project))
+					// Use attributes to mark active project
+					listItem.SetAttribute("active", true)
+					listItem.SetContent(ast.StringValue(project + "   [active]"))
 				}
+				projectsList.AddChild(listItem)
 			}
-			projectsHeading.Add(projectsList)
+			projectsHeading.AddChild(projectsList)
 		}
-		root.Add(projectsHeading)
+		root.AddChild(projectsHeading)
 
 		// Linked Vaults section
 		vaults, err := ws.GetLinkedVaults()
@@ -58,27 +60,25 @@ func StatusHandler() error {
 			return err
 		}
 
-		vaultsHeading := output.NewHeading("Linked Vaults")
+		vaultsHeading := ast.NewHeading("Linked Vaults")
 		if len(vaults) == 0 {
-			vaultsHeading.Add(output.NewText("None"))
+			vaultsHeading.AddChild(ast.Text("None"))
 		} else {
-			vaultsList := output.NewList()
+			vaultsList := ast.NewList()
 			for _, vault := range vaults {
-				vaultsList.Add(output.NewListItem(vault.Alias + " " + vault.Path))
+				vaultItem := ast.NewListItem(vault.Alias + " " + vault.Path)
+				// Add metadata attributes for potential future use
+				vaultItem.SetAttribute("alias", vault.Alias)
+				vaultItem.SetAttribute("path", vault.Path)
+				vaultsList.AddChild(vaultItem)
 			}
-			vaultsHeading.Add(vaultsList)
+			vaultsHeading.AddChild(vaultsList)
 		}
-		root.Add(vaultsHeading)
+		root.AddChild(vaultsHeading)
 
-		// Create formatter and render
-		formatter := output.NewOutputFormatter().
-			Using("root", plain.RootFormatter).
-			Using("heading", plain.HeadingFormatter).
-			Using("list", plain.ListFormatter).
-			Using("listitem", plain.ListItemFormatter).
-			Using("text", plain.TextWithNewlineFormatter)
-
-		result, err := formatter.Render(root)
+		// Create CLI renderer and render
+		renderer := cli.NewRenderer()
+		result, err := renderer.Render(root)
 		if err != nil {
 			return fmt.Errorf("failed to render status output: %w", err)
 		}
