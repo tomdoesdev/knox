@@ -39,7 +39,7 @@ func NewSlog(t LoggerType) {
 	case Text:
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: levelOpts[GetLevel()]})
 	default:
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: levelOpts[GetLevel()]})
+		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: levelOpts[Info]})
 	}
 
 	logger = slog.New(handler)
