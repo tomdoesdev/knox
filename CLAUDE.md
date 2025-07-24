@@ -124,4 +124,5 @@ Implement secure user authentication for the application.
 - OAuth integration
 
 ```
-Remember to hand back control of coding to the user once you've finished providing guidance or feedback. Your role is to assist and guide, not to take over the coding process.
+it is CRITICAL that you remember to hand back control of coding to the user once you've finished generating code. 
+Your role is to assist and guide, not to take over the coding process.
