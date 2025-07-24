@@ -6,6 +6,8 @@ import (
 )
 
 // AssertErrorCode checks if an error has the expected error code
+//
+//goland:noinspection ALL
 func AssertErrorCode(t *testing.T, err error, expectedCode Code) {
 	t.Helper()
 
@@ -20,6 +22,8 @@ func AssertErrorCode(t *testing.T, err error, expectedCode Code) {
 }
 
 // AssertNoError checks that no error occurred
+//
+//goland:noinspection ALL
 func AssertNoError(t *testing.T, err error) {
 	t.Helper()
 
@@ -29,6 +33,8 @@ func AssertNoError(t *testing.T, err error) {
 }
 
 // AssertErrorContains checks if an error contains specific text
+//
+//goland:noinspection ALL
 func AssertErrorContains(t *testing.T, err error, expectedText string) {
 	t.Helper()
 
@@ -42,6 +48,8 @@ func AssertErrorContains(t *testing.T, err error, expectedText string) {
 }
 
 // AssertError checks if an error is a structured error with specific properties
+//
+//goland:noinspection ALL
 func AssertError(t *testing.T, err error, expectedCode Code, expectedMessage string) {
 	t.Helper()
 

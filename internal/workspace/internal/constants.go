@@ -1,8 +1,7 @@
 package internal
 
 const (
-	DataDirectoryName      = ".knox-workspace"
-	CurrentProjectFileName = "current-project"
-	DatabaseFileName       = "workspace.db"
-	ProjectsDirectoryName  = "projects"
+	DataDirectoryName     = ".knox-workspace"
+	DatabaseFileName      = "workspace.db"
+	ProjectsDirectoryName = "projects"
 )

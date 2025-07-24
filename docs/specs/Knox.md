@@ -36,24 +36,24 @@ Knox v1 has been implemented with vault file location system, SQLite backend, an
 3. How should Knox v2 handle configuration vs. v1?
 
 ### Core Functionality
-4. What new features/capabilities should Knox v2 have that v1 lacks?
-5. Should v2 maintain the same core concept (secret management) or expand scope?
-6. How should Knox v2 handle different types of secrets/data?
+1. What new features/capabilities should Knox v2 have that v1 lacks?
+2. Should v2 maintain the same core concept (secret management) or expand scope?
+3. How should Knox v2 handle different types of secrets/data?
 
 ### Storage & Backend
-7. Should v2 stick with SQLite or consider other storage options?
-8. How should v2 handle encryption and security differently than v1?
-9. What about backup/sync/sharing capabilities?
+1. Should v2 stick with SQLite or consider other storage options?
+2. How should v2 handle encryption and security differently than v1?
+3. What about backup/sync/sharing capabilities?
 
 ### CLI/UX Design
-10. How should the CLI interface change in v2?
-11. What workflow improvements are needed over v1?
-12. Should v2 have additional interfaces (web UI, API, etc.)?
+1. How should the CLI interface change in v2?
+2. What workflow improvements are needed over v1?
+3. Should v2 have additional interfaces (web UI, API, etc.)?
 
 ### Technical Stack
-13. Any changes to Go dependencies or frameworks?
-14. How should v2 handle testing and development workflow?
-15. What about deployment and distribution improvements?
+1. Any changes to Go dependencies or frameworks?
+2. How should v2 handle testing and development workflow?
+3. What about deployment and distribution improvements?
 
 ## Knox v2 Core Design
 

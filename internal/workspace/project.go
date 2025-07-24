@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/internal/error_codes"
 	"github.com/tomdoesdev/knox/kit/errs"
 )
 
@@ -80,35 +80,35 @@ func FromJSON(data []byte) (*Project, error) {
 func ParseSecretReference(ref string) (*SecretReference, error) {
 	parts := strings.Split(ref, "@")
 	if len(parts) != 2 {
-		return nil, errs.New(internal.SecretInvalidCode, "invalid secret reference format, expected 'secret@vault/collection'").WithContext("reference", ref)
+		return nil, errs.New(error_codes.SecretInvalidErrCode, "invalid secret reference format, expected 'secret@vault/collection'").WithContext("reference", ref)
 	}
 
 	secret := strings.TrimSpace(parts[0])
 	location := strings.TrimSpace(parts[1])
 
 	if secret == "" {
-		return nil, errs.New(internal.SecretInvalidCode, "secret name cannot be empty").WithContext("reference", ref)
+		return nil, errs.New(error_codes.SecretInvalidErrCode, "secret name cannot be empty").WithContext("reference", ref)
 	}
 
 	if location == "" {
-		return nil, errs.New(internal.SecretInvalidCode, "vault/collection location cannot be empty").WithContext("reference", ref)
+		return nil, errs.New(error_codes.SecretInvalidErrCode, "vault/collection location cannot be empty").WithContext("reference", ref)
 	}
 
 	// Parse vault/collection from location
 	locationParts := strings.Split(location, "/")
 	if len(locationParts) != 2 {
-		return nil, errs.New(internal.SecretInvalidCode, "invalid location format, expected 'vault/collection'").WithContext("reference", ref).WithContext("location", location)
+		return nil, errs.New(error_codes.SecretInvalidErrCode, "invalid location format, expected 'vault/collection'").WithContext("reference", ref).WithContext("location", location)
 	}
 
 	vault := strings.TrimSpace(locationParts[0])
 	collection := strings.TrimSpace(locationParts[1])
 
 	if vault == "" {
-		return nil, errs.New(internal.SecretInvalidCode, "vault name cannot be empty").WithContext("reference", ref)
+		return nil, errs.New(error_codes.SecretInvalidErrCode, "vault name cannot be empty").WithContext("reference", ref)
 	}
 
 	if collection == "" {
-		return nil, errs.New(internal.SecretInvalidCode, "collection name cannot be empty").WithContext("reference", ref)
+		return nil, errs.New(error_codes.SecretInvalidErrCode, "collection name cannot be empty").WithContext("reference", ref)
 	}
 
 	return &SecretReference{
@@ -121,17 +121,17 @@ func ParseSecretReference(ref string) (*SecretReference, error) {
 // ValidateName validates a project name
 func ValidateName(name string) error {
 	if name == "" {
-		return errs.New(internal.ProjectInvalidCode, "project name cannot be empty")
+		return errs.New(error_codes.ProjectInvalidErrCode, "project name cannot be empty")
 	}
 
 	// Project names should be valid filenames and reasonable identifiers
 	validName := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 	if !validName.MatchString(name) {
-		return errs.New(internal.ProjectInvalidCode, "project name must contain only letters, numbers, underscores, and hyphens").WithContext("name", name)
+		return errs.New(error_codes.ProjectInvalidErrCode, "project name must contain only letters, numbers, underscores, and hyphens").WithContext("name", name)
 	}
 
 	if len(name) > 50 {
-		return errs.New(internal.ProjectInvalidCode, "project name must be 50 characters or less").WithContext("name", name)
+		return errs.New(error_codes.ProjectInvalidErrCode, "project name must be 50 characters or less").WithContext("name", name)
 	}
 
 	return nil
@@ -144,18 +144,18 @@ func (p *Project) Validate() error {
 	}
 
 	if p.SecretMap == nil {
-		return errs.New(internal.ProjectInvalidCode, "project must have a secret map")
+		return errs.New(error_codes.ProjectInvalidErrCode, "project must have a secret map")
 	}
 
 	// Validate all secret references
 	for logicalName, secretRef := range p.SecretMap {
 		if logicalName == "" {
-			return errs.New(internal.ProjectInvalidCode, "logical secret name cannot be empty")
+			return errs.New(error_codes.ProjectInvalidErrCode, "logical secret name cannot be empty")
 		}
 
 		_, err := ParseSecretReference(secretRef)
 		if err != nil {
-			return errs.Wrap(err, internal.ProjectInvalidCode, fmt.Sprintf("invalid secret reference for '%s'", logicalName))
+			return errs.Wrap(err, error_codes.ProjectInvalidErrCode, fmt.Sprintf("invalid secret reference for '%s'", logicalName))
 		}
 	}
 
@@ -181,7 +181,7 @@ func (p *Project) ValidateWithVaults(availableVaults []string) error {
 		}
 
 		if !vaultSet[ref.Vault] {
-			return errs.New(internal.ProjectInvalidCode, fmt.Sprintf("secret '%s' references unknown vault '%s'", logicalName, ref.Vault))
+			return errs.New(error_codes.ProjectInvalidErrCode, fmt.Sprintf("secret '%s' references unknown vault '%s'", logicalName, ref.Vault))
 		}
 	}
 

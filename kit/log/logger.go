@@ -36,6 +36,8 @@ func NewSlog(t LoggerType) {
 	case JSON:
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: levelOpts[GetLevel()]})
 		break
+	case Text:
+		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: levelOpts[GetLevel()]})
 	default:
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: levelOpts[GetLevel()]})
 	}

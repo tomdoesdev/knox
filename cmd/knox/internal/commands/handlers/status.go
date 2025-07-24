@@ -1,13 +1,12 @@
-package internal
+package handlers
 
 import (
 	"fmt"
 	"log/slog"
-	"os"
-	"path/filepath"
 
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common"
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common/output"
 	"github.com/tomdoesdev/knox/internal/workspace"
-	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 // StatusItem represents a single item in the status output
@@ -72,7 +71,7 @@ func (c *CurrentProjectItem) Name() string {
 }
 
 func (c *CurrentProjectItem) Value(ws *workspace.Workspace, workspaceDir string) (string, error) {
-	currentProject, err := ws.GetCurrentProject()
+	currentProject, err := ws.CurrentProject()
 	if err != nil {
 		return "none", nil
 	}
@@ -97,7 +96,7 @@ func (p *ProjectsItem) Value(ws *workspace.Workspace, workspaceDir string) (stri
 	}
 
 	// Get current active project
-	currentProject, err := ws.GetCurrentProject()
+	currentProject, err := ws.CurrentProject()
 	if err != nil {
 		currentProject = ""
 	}
@@ -141,33 +140,26 @@ func (l *LinkedVaultsItem) Value(ws *workspace.Workspace, workspaceDir string) (
 
 // StatusHandler handles the status command
 func StatusHandler() error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return errs.Wrap(err, "SEARCH_FAILURE", "failed to get current working directory")
-	}
+	return common.WithLocalWorkspace(func(ws *workspace.Workspace) error {
+		root := output.NewRoot()
+		p, err := ws.ListProjects()
 
-	ws, err := workspace.FindWorkspace(cwd)
-	if err != nil {
-		return errs.Wrap(err, "SEARCH_FAILURE", "failed to find workspace")
-	}
-
-	// Get the workspace root directory
-	workspaceDir := cwd
-	// Find the actual workspace root by traversing up to find .knox-workspace
-	for {
-		if _, err := os.Stat(filepath.Join(workspaceDir, ".knox-workspace")); err == nil {
-			break
+		if err != nil {
+			return err
 		}
-		parent := filepath.Dir(workspaceDir)
-		if parent == workspaceDir {
-			// Shouldn't happen since FindWorkspace succeeded
-			workspaceDir = cwd
-			break
-		}
-		workspaceDir = parent
-	}
-	slog.Debug("knox workspace dir", "dir", workspaceDir)
 
-	registry := NewStatusRegistry()
-	return registry.PrintStatus(ws, workspaceDir)
+		l := output.NewList()
+
+		for _, project := range p {
+			l.Add(output.Text(project))
+		}
+
+		root.Add(l)
+
+		fmt.Print(root.String())
+		slog.Debug("knox workspace dir", "dir", ws.DataDir())
+
+		return nil
+	})
+
 }

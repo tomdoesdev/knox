@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/internal/error_codes"
 	workspaceErrors "github.com/tomdoesdev/knox/internal/workspace/internal"
 	"github.com/tomdoesdev/knox/kit/errs"
 	"github.com/tomdoesdev/knox/kit/fs"
@@ -97,17 +97,17 @@ func EnsureWorkspaceDatabase(path *Path) (*Database, error) {
 }
 func CreateWorkspaceDatabase(path *Path) (*Database, error) {
 	if exists := IsDatabaseExists(path); exists {
-		return nil, errs.Wrap(workspaceErrors.ErrInvalidDatabase, internal.DatabaseFailureCode, "database already exists")
+		return nil, errs.Wrap(workspaceErrors.ErrInvalidDatabase, error_codes.DatabaseFailureErrCode, "database already exists")
 	}
 
 	db, err := sql.Open("sqlite3", path.ConnectionString())
 	if err != nil {
-		return nil, errs.Wrap(err, internal.CreateFailureCode, "failed to open database").WithContext("path", path)
+		return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to open database").WithContext("path", path)
 	}
 
 	_, err = db.Exec(tablesSchema)
 	if err != nil {
-		return nil, errs.Wrap(err, internal.CreateFailureCode, "failed to create database").WithContext("path", path)
+		return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to create database").WithContext("path", path)
 	}
 
 	if !isValidWorkspaceDatabase(db) {
@@ -120,7 +120,7 @@ func CreateWorkspaceDatabase(path *Path) (*Database, error) {
 func OpenWorkspaceDatabase(path *Path) (*Database, error) {
 	db, err := sql.Open("sqlite3", path.ConnectionString())
 	if err != nil {
-		return nil, errs.Wrap(err, internal.CreateFailureCode, "failed to open database").WithContext("path", path)
+		return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to open database").WithContext("path", path)
 	}
 
 	if !isValidWorkspaceDatabase(db) {

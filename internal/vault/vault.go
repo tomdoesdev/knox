@@ -16,15 +16,6 @@ func (v *Vault) Close() error {
 	return v.db.Close()
 }
 
-func OpenFileSystem() (*Vault, error) {
-	d, err := NewFileSystemDatasource()
-	if err != nil {
-		return nil, err
-	}
-
-	return Open(d)
-}
-
 func Open(dsp DatasourceProvider) (*Vault, error) {
 	datasource, err := dsp.Datasource()
 	if err != nil {

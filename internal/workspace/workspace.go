@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"database/sql"
+	"errors"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -9,7 +10,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
-	internal2 "github.com/tomdoesdev/knox/internal"
+	"github.com/tomdoesdev/knox/internal/error_codes"
 	"github.com/tomdoesdev/knox/internal/workspace/internal"
 	"github.com/tomdoesdev/knox/internal/workspace/internal/database"
 
@@ -36,11 +37,17 @@ type LinkedVault struct {
 	CreatedAt string `json:"created_at"`
 }
 
-func (w *Workspace) Dir() string {
+// DataDir returns the full path to the workspace data directory
+func (w *Workspace) DataDir() string {
 	if filepath.Base(w.path) == internal.DataDirectoryName {
 		return w.path
 	}
-	return filepath.Join(w.path, internal.DataDirectoryName)
+	return filepath.Clean(filepath.Join(w.path, internal.DataDirectoryName))
+}
+
+// Dir returns the path to the parent directory containing the workspace data directory
+func (w *Workspace) Dir() string {
+	return filepath.Clean(w.path)
 }
 
 func NewWorkspace(db *database.Database, path string) *Workspace {
@@ -110,7 +117,7 @@ func CreateWorkspace(path string) (*Workspace, error) {
 	if !fs.IsDir(dir) {
 		err := os.MkdirAll(dir, 0700)
 		if err != nil {
-			return nil, errs.Wrap(err, internal2.CreateFailureCode, "failed to create workspace directory").WithContext("path", path)
+			return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to create workspace directory").WithContext("path", path)
 		}
 	}
 
@@ -119,7 +126,7 @@ func CreateWorkspace(path string) (*Workspace, error) {
 	if !fs.IsDir(projectsDir) {
 		err := os.MkdirAll(projectsDir, 0700)
 		if err != nil {
-			return nil, errs.Wrap(err, internal2.CreateFailureCode, "failed to create projects directory").WithContext("path", projectsDir)
+			return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to create projects directory").WithContext("path", projectsDir)
 		}
 	}
 
@@ -136,13 +143,13 @@ func CreateWorkspace(path string) (*Workspace, error) {
 	defaultProject := NewProject("default", "Default project for workspace")
 	err = workspace.CreateProject(defaultProject)
 	if err != nil {
-		return nil, errs.Wrap(err, internal2.CreateFailureCode, "failed to create default project")
+		return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to create default project")
 	}
 
 	// Set default project as current
 	err = workspace.SetCurrentProject("default")
 	if err != nil {
-		return nil, errs.Wrap(err, internal2.CreateFailureCode, "failed to set default project as current")
+		return nil, errs.Wrap(err, error_codes.CreateFailureErrCode, "failed to set default project as current")
 	}
 
 	return workspace, nil
@@ -181,7 +188,7 @@ func (w *Workspace) CreateProject(project *Project) error {
 	// Validate against available vaults
 	vaults, err := w.GetLinkedVaultAliases()
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to get linked vaults")
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to get linked vaults")
 	}
 
 	if err := project.ValidateWithVaults(vaults); err != nil {
@@ -192,17 +199,17 @@ func (w *Workspace) CreateProject(project *Project) error {
 
 	// Check if project already exists
 	if fs.IsFile(projectPath) {
-		return errs.New(internal2.ProjectExistsCode, "project already exists").WithContext("name", project.Name)
+		return errs.New(error_codes.ProjectExistsErrCode, "project already exists").WithContext("name", project.Name)
 	}
 
 	data, err := project.ToJSON()
 	if err != nil {
-		return errs.Wrap(err, internal2.ProjectInvalidCode, "failed to serialize project")
+		return errs.Wrap(err, error_codes.ProjectInvalidErrCode, "failed to serialize project")
 	}
 
 	err = os.WriteFile(projectPath, data, 0600)
 	if err != nil {
-		return errs.Wrap(err, internal2.FilePermissionCode, "failed to write project file").WithContext("path", projectPath)
+		return errs.Wrap(err, error_codes.FilePermissionErrCode, "failed to write project file").WithContext("path", projectPath)
 	}
 
 	return nil
@@ -213,17 +220,17 @@ func (w *Workspace) LoadProject(name string) (*Project, error) {
 	projectPath := filepath.Join(w.ProjectsPath(), name+".json")
 
 	if !fs.IsFile(projectPath) {
-		return nil, errs.New(internal2.ProjectNotFoundCode, "project not found").WithContext("name", name)
+		return nil, errs.New(error_codes.ProjectNotFoundErrCode, "project not found").WithContext("name", name)
 	}
 
 	data, err := os.ReadFile(projectPath)
 	if err != nil {
-		return nil, errs.Wrap(err, internal2.FileNotFoundCode, "failed to read project file").WithContext("path", projectPath)
+		return nil, errs.Wrap(err, error_codes.FileNotFoundErrCode, "failed to read project file").WithContext("path", projectPath)
 	}
 
 	project, err := FromJSON(data)
 	if err != nil {
-		return nil, errs.Wrap(err, internal2.ProjectInvalidCode, "failed to parse project file").WithContext("path", projectPath)
+		return nil, errs.Wrap(err, error_codes.ProjectInvalidErrCode, "failed to parse project file").WithContext("path", projectPath)
 	}
 
 	return project, nil
@@ -239,7 +246,7 @@ func (w *Workspace) UpdateProject(project *Project) error {
 	// Validate against available vaults
 	vaults, err := w.GetLinkedVaultAliases()
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to get linked vaults")
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to get linked vaults")
 	}
 
 	if err := project.ValidateWithVaults(vaults); err != nil {
@@ -249,17 +256,17 @@ func (w *Workspace) UpdateProject(project *Project) error {
 	projectPath := filepath.Join(w.ProjectsPath(), project.Name+".json")
 
 	if !fs.IsFile(projectPath) {
-		return errs.New(internal2.ProjectNotFoundCode, "project not found").WithContext("name", project.Name)
+		return errs.New(error_codes.ProjectNotFoundErrCode, "project not found").WithContext("name", project.Name)
 	}
 
 	data, err := project.ToJSON()
 	if err != nil {
-		return errs.Wrap(err, internal2.ProjectInvalidCode, "failed to serialize project")
+		return errs.Wrap(err, error_codes.ProjectInvalidErrCode, "failed to serialize project")
 	}
 
 	err = os.WriteFile(projectPath, data, 0600)
 	if err != nil {
-		return errs.Wrap(err, internal2.FilePermissionCode, "failed to write project file").WithContext("path", projectPath)
+		return errs.Wrap(err, error_codes.FilePermissionErrCode, "failed to write project file").WithContext("path", projectPath)
 	}
 
 	return nil
@@ -270,12 +277,12 @@ func (w *Workspace) DeleteProject(name string) error {
 	projectPath := filepath.Join(w.ProjectsPath(), name+".json")
 
 	if !fs.IsFile(projectPath) {
-		return errs.New(internal2.ProjectNotFoundCode, "project not found").WithContext("name", name)
+		return errs.New(error_codes.ProjectNotFoundErrCode, "project not found").WithContext("name", name)
 	}
 
 	err := os.Remove(projectPath)
 	if err != nil {
-		return errs.Wrap(err, internal2.FilePermissionCode, "failed to delete project file").WithContext("path", projectPath)
+		return errs.Wrap(err, error_codes.FilePermissionErrCode, "failed to delete project file").WithContext("path", projectPath)
 	}
 
 	return nil
@@ -287,7 +294,7 @@ func (w *Workspace) ListProjects() ([]string, error) {
 
 	entries, err := os.ReadDir(projectsDir)
 	if err != nil {
-		return nil, errs.Wrap(err, internal2.DirectoryInvalidCode, "failed to read projects directory").WithContext("path", projectsDir)
+		return nil, errs.Wrap(err, error_codes.DirectoryInvalidErrCode, "failed to read projects directory").WithContext("path", projectsDir)
 	}
 
 	var projects []string
@@ -308,8 +315,8 @@ func (w *Workspace) GetLinkedVaultAliases() ([]string, error) {
 	return []string{}, nil
 }
 
-// GetCurrentProject returns the currently active project name
-func (w *Workspace) GetCurrentProject() (string, error) {
+// CurrentProject returns the currently active project name
+func (w *Workspace) CurrentProject() (string, error) {
 	return w.GetSetting("current_project")
 }
 
@@ -325,10 +332,10 @@ func (w *Workspace) GetSetting(key string) (string, error) {
 	var value string
 	err := w.db.DB().QueryRow(query, key).Scan(&value)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", errs.New(internal2.SearchFailureCode, "setting not found").WithContext("key", key)
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errs.New(error_codes.SearchFailureErrCode, "setting not found").WithContext("key", key)
 		}
-		return "", errs.Wrap(err, internal2.DatabaseFailureCode, "failed to get setting").WithContext("key", key)
+		return "", errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to get setting").WithContext("key", key)
 	}
 
 	return value, nil
@@ -346,7 +353,7 @@ func (w *Workspace) SetSetting(key, value string) error {
 
 	_, err := w.db.DB().Exec(query, key, value)
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to set setting").WithContext("key", key).WithContext("value", value)
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to set setting").WithContext("key", key).WithContext("value", value)
 	}
 
 	return nil
@@ -359,10 +366,10 @@ func (w *Workspace) GetMeta(key string) (string, error) {
 	var value string
 	err := w.db.DB().QueryRow(query, key).Scan(&value)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", errs.New(internal2.SearchFailureCode, "metadata not found").WithContext("key", key)
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errs.New(error_codes.SearchFailureErrCode, "metadata not found").WithContext("key", key)
 		}
-		return "", errs.Wrap(err, internal2.DatabaseFailureCode, "failed to get metadata").WithContext("key", key)
+		return "", errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to get metadata").WithContext("key", key)
 	}
 
 	return value, nil
@@ -380,7 +387,7 @@ func (w *Workspace) SetMeta(key, value string) error {
 
 	_, err := w.db.DB().Exec(query, key, value)
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to set metadata").WithContext("key", key).WithContext("value", value)
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to set metadata").WithContext("key", key).WithContext("value", value)
 	}
 
 	return nil
@@ -390,12 +397,12 @@ func (w *Workspace) SetMeta(key, value string) error {
 func (w *Workspace) LinkVault(alias, vaultPath string) error {
 	// Validate alias
 	if alias == "" {
-		return errs.New(internal2.ValidationCode, "vault alias cannot be empty")
+		return errs.New(error_codes.ValidationErrCode, "vault alias cannot be empty")
 	}
 
 	// Validate vault path
 	if vaultPath == "" {
-		return errs.New(internal2.ValidationCode, "vault path cannot be empty")
+		return errs.New(error_codes.ValidationErrCode, "vault path cannot be empty")
 	}
 
 	// Check if alias already exists
@@ -403,27 +410,27 @@ func (w *Workspace) LinkVault(alias, vaultPath string) error {
 	var count int
 	err := w.db.DB().QueryRow(query, alias).Scan(&count)
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to check vault alias").WithContext("alias", alias)
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to check vault alias").WithContext("alias", alias)
 	}
 	if count > 0 {
-		return errs.New(internal2.ValidationCode, "vault alias already exists").WithContext("alias", alias)
+		return errs.New(error_codes.ValidationErrCode, "vault alias already exists").WithContext("alias", alias)
 	}
 
 	// Check if path already exists
 	query = "SELECT COUNT(*) FROM linked_vaults WHERE path = ?"
 	err = w.db.DB().QueryRow(query, vaultPath).Scan(&count)
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to check vault path").WithContext("path", vaultPath)
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to check vault path").WithContext("path", vaultPath)
 	}
 	if count > 0 {
-		return errs.New(internal2.ValidationCode, "vault path already linked").WithContext("path", vaultPath)
+		return errs.New(error_codes.ValidationErrCode, "vault path already linked").WithContext("path", vaultPath)
 	}
 
 	// Insert the vault link
 	insertQuery := "INSERT INTO linked_vaults (alias, path) VALUES (?, ?)"
 	_, err = w.db.DB().Exec(insertQuery, alias, vaultPath)
 	if err != nil {
-		return errs.Wrap(err, internal2.DatabaseFailureCode, "failed to link vault").WithContext("alias", alias).WithContext("path", vaultPath)
+		return errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to link vault").WithContext("alias", alias).WithContext("path", vaultPath)
 	}
 
 	return nil
@@ -435,22 +442,24 @@ func (w *Workspace) GetLinkedVaults() ([]LinkedVault, error) {
 
 	rows, err := w.db.DB().Query(query)
 	if err != nil {
-		return nil, errs.Wrap(err, internal2.DatabaseFailureCode, "failed to query linked vaults")
+		return nil, errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to query linked vaults")
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	var vaults []LinkedVault
 	for rows.Next() {
 		var vault LinkedVault
 		err := rows.Scan(&vault.Alias, &vault.Path, &vault.CreatedAt)
 		if err != nil {
-			return nil, errs.Wrap(err, internal2.DatabaseFailureCode, "failed to scan vault row")
+			return nil, errs.Wrap(err, error_codes.DatabaseFailureErrCode, "failed to scan vault row")
 		}
 		vaults = append(vaults, vault)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, errs.Wrap(err, internal2.DatabaseFailureCode, "error iterating vault rows")
+		return nil, errs.Wrap(err, error_codes.DatabaseFailureErrCode, "error iterating vault rows")
 	}
 
 	return vaults, nil
