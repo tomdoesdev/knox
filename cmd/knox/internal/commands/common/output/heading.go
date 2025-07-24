@@ -1,29 +1,45 @@
 package output
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
+// Heading represents a mixed element that has both title content and child elements
 type Heading struct {
-	heading     string
-	subHeadings []fmt.Stringer
+	title    fmt.Stringer
+	children []Element
 }
 
+// NewHeading creates a new Heading element with the given title
 func NewHeading(title string) *Heading {
-	return &Heading{heading: title, subHeadings: make([]fmt.Stringer, 0)}
-}
-func (h *Heading) Add(v fmt.Stringer) {
-	h.subHeadings = append(h.subHeadings, v)
-}
-
-func (h *Heading) String() string {
-	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("Heading<%s>\n", h.heading))
-
-	for _, sub := range h.subHeadings {
-		sb.WriteString(fmt.Sprintf("SubHeading<%s>\n", sub.String()))
+	return &Heading{
+		title:    StringValue(title),
+		children: make([]Element, 0),
 	}
+}
 
-	return sb.String()
+// NewHeadingStringer creates a new Heading element with a fmt.Stringer title
+func NewHeadingStringer(title fmt.Stringer) *Heading {
+	return &Heading{
+		title:    title,
+		children: make([]Element, 0),
+	}
+}
+
+// Add appends a child element to this heading
+func (h *Heading) Add(element Element) {
+	h.children = append(h.children, element)
+}
+
+// Value returns the title content of this heading
+func (h *Heading) Value() fmt.Stringer {
+	return h.title
+}
+
+// Children returns all child elements of this heading
+func (h *Heading) Children() []Element {
+	return h.children
+}
+
+// Type returns "heading" as the element type identifier
+func (h *Heading) Type() string {
+	return "heading"
 }
