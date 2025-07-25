@@ -48,26 +48,29 @@ func TestBuilderAttributes(t *testing.T) {
 		t.Errorf("Expected 3 attributes, got %d", len(attrs))
 	}
 
-	if attrs["key1"] != "value1" {
+	if v, _ := attrs["key1"].AsString(); v != "value1" {
 		t.Errorf("Expected key1='value1', got '%v'", attrs["key1"])
 	}
 
-	if attrs["key2"] != 42 {
+	if v, _ := attrs["key2"].AsInt(); v != 42 {
 		t.Errorf("Expected key2=42, got '%v'", attrs["key2"])
 	}
 
-	if attrs["key3"] != true {
+	if v, _ := attrs["key3"].AsBool(); v != true {
 		t.Errorf("Expected key3=true, got '%v'", attrs["key3"])
 	}
 
 	// Test GetAttribute method
 	value, exists := tree.GetAttribute("key1")
-	if !exists || value != "value1" {
-		t.Errorf("GetAttribute failed for key1")
+	if !exists {
+		t.Errorf("GetAttribute failed for key1 - attribute not found")
+	} else {
+		if v, _ := value.AsString(); v != "value1" {
+			t.Errorf("GetAttribute failed for key1")
+		}
 	}
 
-	_, exists = tree.GetAttribute("nonexistent")
-	if exists {
+	if _, exists := tree.GetAttribute("nonexistent"); exists {
 		t.Error("GetAttribute should return false for nonexistent key")
 	}
 }
@@ -214,13 +217,17 @@ func TestComplexConfiguration(t *testing.T) {
 		Build()
 
 	// Verify root attributes
-	version, exists := config.GetAttribute("version")
-	if !exists || version != "2.1" {
+	attr, exists := config.GetAttribute("version")
+	if !exists {
+		t.Error("Config version attribute not found")
+	} else if version, _ := attr.AsString(); version != "2.1" {
 		t.Error("Config version attribute not set correctly")
 	}
 
-	environment, exists := config.GetAttribute("environment")
-	if !exists || environment != "production" {
+	environmentAttr, exists := config.GetAttribute("environment")
+	if !exists {
+		t.Error("Config environment attribute not found")
+	} else if environment, _ := environmentAttr.AsString(); environment != "production" {
 		t.Error("Config environment attribute not set correctly")
 	}
 
@@ -253,8 +260,10 @@ func TestComplexConfiguration(t *testing.T) {
 		t.Errorf("Expected logging section, got '%s'", logging.Type())
 	}
 
-	loggingLevel, exists := logging.GetAttribute("level")
-	if !exists || loggingLevel != "info" {
+	loggingLevelAttr, exists := logging.GetAttribute("level")
+	if !exists {
+		t.Error("Logging level attribute not found")
+	} else if level, _ := loggingLevelAttr.AsString(); level != "info" {
 		t.Error("Logging level attribute not set correctly")
 	}
 }

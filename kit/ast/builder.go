@@ -24,11 +24,10 @@ type mutableNode struct {
 	nodeType   string
 	content    fmt.Stringer
 	children   []Node
-	attributes map[string]interface{}
+	attributes map[string]*Attribute
 	parent     *mutableNode // For navigation during building
 }
 
-// Node interface implementation
 func (n *mutableNode) Type() string {
 	return n.nodeType
 }
@@ -41,11 +40,11 @@ func (n *mutableNode) Children() []Node {
 	return n.children
 }
 
-func (n *mutableNode) Attributes() map[string]interface{} {
+func (n *mutableNode) Attributes() map[string]*Attribute {
 	return n.attributes
 }
 
-func (n *mutableNode) GetAttribute(key string) (interface{}, bool) {
+func (n *mutableNode) GetAttribute(key string) (*Attribute, bool) {
 	value, exists := n.attributes[key]
 	return value, exists
 }
@@ -63,7 +62,7 @@ func NewBuilder(rootType string) Builder {
 		nodeType:   rootType,
 		content:    EmptyValue{},
 		children:   make([]Node, 0),
-		attributes: make(map[string]interface{}),
+		attributes: make(map[string]*Attribute),
 		parent:     nil,
 	}
 
@@ -80,7 +79,7 @@ func (b *nodeBuilder) Node(nodeType string) Builder {
 		nodeType:   nodeType,
 		content:    EmptyValue{},
 		children:   make([]Node, 0),
-		attributes: make(map[string]interface{}),
+		attributes: make(map[string]*Attribute),
 		parent:     b.current,
 	}
 
@@ -121,8 +120,8 @@ func (b *nodeBuilder) Content(content string) Builder {
 }
 
 // Attr sets an attribute on the current node
-func (b *nodeBuilder) Attr(key string, value interface{}) Builder {
-	b.current.attributes[key] = value
+func (b *nodeBuilder) Attr(key string, value any) Builder {
+	b.current.attributes[key] = NewAttribute(value)
 	return b
 }
 

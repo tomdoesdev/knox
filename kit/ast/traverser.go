@@ -5,7 +5,7 @@ import (
 )
 
 // VisitorFunc is called for each node during traversal
-type VisitorFunc func(node Node) error
+type VisitorFunc func(n Node) error
 
 // WithBreadthFirstTraversal visits nodes level by level (queue-based)
 // Children are processed in left-to-right order as they appear in the Children() slice

@@ -9,6 +9,8 @@ import (
 )
 
 func InitHandler() (ast.Node, error) {
+	b := ast.NewBuilder("result")
+
 	err := common.WithEnsuredLocalWorkspace(func(ws *workspace.Workspace, result workspace.InitResult) error {
 		currentProject, err := ws.CurrentProject()
 		if err != nil {
@@ -17,12 +19,24 @@ func InitHandler() (ast.Node, error) {
 
 		switch result {
 		case workspace.Created:
-			fmt.Printf("initialized empty workspace in %s\n", ws.Dir())
-			fmt.Printf("current project: %s\n", currentProject)
+			{
+				b.Attr("created", true).
+					Attr("project", currentProject).
+					Node("message").
+					Content(fmt.Sprintf("initialized empty workspace in %s\n", ws.Dir())).
+					Up().
+					Node("message").
+					Content(fmt.Sprintf("current project: %s\n", currentProject))
+			}
 			break
 		case workspace.Existed:
-			fmt.Printf("workspace already exists in %s\n", ws.Dir())
-			fmt.Printf("current project: %s\n", currentProject)
+			b.Attr("created", true).
+				Attr("project", currentProject).
+				Node("message").
+				Content(fmt.Sprintf("workspace already exists in %s\n", ws.Dir())).
+				Up().
+				Node("message").
+				Content(fmt.Sprintf("current project: %s\n", currentProject))
 			break
 		default:
 			panic(fmt.Sprintf("unexpected result: %s", result))
@@ -31,5 +45,5 @@ func InitHandler() (ast.Node, error) {
 		return nil
 	})
 
-	return nil, err
+	return b.Build(), err
 }

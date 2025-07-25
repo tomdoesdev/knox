@@ -15,10 +15,10 @@ type Node interface {
 
 	// Attributes returns metadata associated with this node
 	// Can contain any structured data as attributes
-	Attributes() map[string]interface{}
+	Attributes() map[string]*Attribute
 
 	// GetAttribute retrieves a specific metadata attribute
-	GetAttribute(key string) (interface{}, bool)
+	GetAttribute(key string) (*Attribute, bool)
 
 	// Type returns a string identifier for the node type
 	Type() string
@@ -35,7 +35,7 @@ type MutableNode interface {
 	AddChild(child Node)
 
 	// SetAttribute sets a metadata attribute
-	SetAttribute(key string, value interface{})
+	SetAttribute(key string, value any)
 }
 
 // StringValue provides a simple implementation of fmt.Stringer for string content

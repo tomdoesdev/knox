@@ -12,7 +12,7 @@ type mockNode struct {
 	nodeType   string
 	content    fmt.Stringer
 	children   []Node
-	attributes map[string]interface{}
+	attributes map[string]*Attribute
 }
 
 func (m *mockNode) Type() string {
@@ -27,11 +27,11 @@ func (m *mockNode) Children() []Node {
 	return m.children
 }
 
-func (m *mockNode) Attributes() map[string]interface{} {
+func (m *mockNode) Attributes() map[string]*Attribute {
 	return m.attributes
 }
 
-func (m *mockNode) GetAttribute(key string) (interface{}, bool) {
+func (m *mockNode) GetAttribute(key string) (*Attribute, bool) {
 	value, exists := m.attributes[key]
 	return value, exists
 }
@@ -42,7 +42,7 @@ func newMockNode(nodeType string, content string, children ...Node) *mockNode {
 		nodeType:   nodeType,
 		content:    StringValue(content),
 		children:   children,
-		attributes: make(map[string]interface{}),
+		attributes: make(map[string]*Attribute),
 	}
 }
 
