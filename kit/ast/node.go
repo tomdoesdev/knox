@@ -3,6 +3,7 @@ package ast
 import "fmt"
 
 // Node represents a node in an abstract syntax tree
+// This is a pure dat
 type Node interface {
 	// Content returns the primary content/value of this node
 	// Returns empty stringer for container-only nodes
@@ -13,10 +14,10 @@ type Node interface {
 	Children() []Node
 
 	// Attributes returns metadata associated with this node
-	// Can contain type information, styling hints, etc.
+	// Can contain any structured data as attributes
 	Attributes() map[string]interface{}
 
-	// GetAttribute retrieves a metadata attribute
+	// GetAttribute retrieves a specific metadata attribute
 	GetAttribute(key string) (interface{}, bool)
 
 	// Type returns a string identifier for the node type
@@ -35,9 +36,6 @@ type MutableNode interface {
 
 	// SetAttribute sets a metadata attribute
 	SetAttribute(key string, value interface{})
-
-	// GetAttribute retrieves a metadata attribute
-	GetAttribute(key string) (interface{}, bool)
 }
 
 // StringValue provides a simple implementation of fmt.Stringer for string content

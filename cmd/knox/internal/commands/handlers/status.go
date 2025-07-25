@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common"
+	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/output"
 	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/renderers/cli"
 	"github.com/tomdoesdev/knox/internal/workspace"
 	"github.com/tomdoesdev/knox/kit/ast"
@@ -18,12 +19,12 @@ func StatusHandler() error {
 			return err
 		}
 
-		// Create the AST tree
-		root := ast.NewRoot()
+		// Create the AST tree using domain-specific constructors
+		root := output.NewRoot()
 
 		// Workspace Directory section
-		workspaceDirHeading := ast.NewHeading("Workspace Directory")
-		workspaceDirHeading.AddChild(ast.Text(cwd))
+		workspaceDirHeading := output.NewHeading("Workspace Directory")
+		workspaceDirHeading.AddChild(output.Text(cwd))
 		root.AddChild(workspaceDirHeading)
 
 		// Projects section
@@ -32,17 +33,17 @@ func StatusHandler() error {
 			return err
 		}
 
-		projectsHeading := ast.NewHeading("Projects")
+		projectsHeading := output.NewHeading("Projects")
 		if len(projects) == 0 {
-			projectsHeading.AddChild(ast.Text("none"))
+			projectsHeading.AddChild(output.Text("none"))
 		} else {
-			projectsList := ast.NewList()
+			projectsList := output.NewList()
 
 			// Get current active project
 			currentProject, _ := ws.CurrentProject()
 
 			for _, project := range projects {
-				listItem := ast.NewListItem(project)
+				listItem := output.NewListItem(project)
 				if project == currentProject {
 					// Use attributes to mark active project
 					listItem.SetAttribute("active", true)
@@ -60,13 +61,13 @@ func StatusHandler() error {
 			return err
 		}
 
-		vaultsHeading := ast.NewHeading("Linked Vaults")
+		vaultsHeading := output.NewHeading("Linked Vaults")
 		if len(vaults) == 0 {
-			vaultsHeading.AddChild(ast.Text("None"))
+			vaultsHeading.AddChild(output.Text("None"))
 		} else {
-			vaultsList := ast.NewList()
+			vaultsList := output.NewList()
 			for _, vault := range vaults {
-				vaultItem := ast.NewListItem(vault.Alias + " " + vault.Path)
+				vaultItem := output.NewListItem(vault.Alias + " " + vault.Path)
 				// Add metadata attributes for potential future use
 				vaultItem.SetAttribute("alias", vault.Alias)
 				vaultItem.SetAttribute("path", vault.Path)
@@ -78,7 +79,7 @@ func StatusHandler() error {
 
 		// Create CLI renderer and render
 		renderer := cli.NewRenderer()
-		result, err := renderer.Render(root)
+		result, err := renderer.Marshal(root)
 		if err != nil {
 			return fmt.Errorf("failed to render status output: %w", err)
 		}

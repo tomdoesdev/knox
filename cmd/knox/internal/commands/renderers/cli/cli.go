@@ -97,17 +97,17 @@ func AttributeListItemHandler(node ast.Node, sb *strings.Builder) error {
 // AttributeTextHandler handles text with potential styling attributes
 func AttributeTextHandler(node ast.Node, sb *strings.Builder) error {
 	content := node.Content().String()
-	
+
 	// Check for styling attributes
 	if bold, exists := node.GetAttribute("bold"); exists && bold.(bool) {
 		content = fmt.Sprintf("**%s**", content) // Markdown-style bold
 	}
-	
+
 	if color, exists := node.GetAttribute("color"); exists {
 		// For now, just add color annotation (could be enhanced with ANSI codes later)
 		content = fmt.Sprintf("[%s]%s", color, content)
 	}
-	
+
 	sb.WriteString(fmt.Sprintf("%s\n\n", content))
 	return nil
 }
@@ -115,7 +115,7 @@ func AttributeTextHandler(node ast.Node, sb *strings.Builder) error {
 // AttributeSectionHandler handles sections with potential styling
 func AttributeSectionHandler(node ast.Node, sb *strings.Builder) error {
 	content := node.Content().String()
-	
+
 	// Check for level or importance attributes
 	if level, exists := node.GetAttribute("level"); exists {
 		if levelInt, ok := level.(int); ok {
@@ -130,7 +130,7 @@ func AttributeSectionHandler(node ast.Node, sb *strings.Builder) error {
 			return nil
 		}
 	}
-	
+
 	// Default section formatting
 	return SectionHandler(node, sb)
 }

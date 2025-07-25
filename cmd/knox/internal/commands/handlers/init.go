@@ -5,11 +5,11 @@ import (
 
 	"github.com/tomdoesdev/knox/cmd/knox/internal/commands/common"
 	"github.com/tomdoesdev/knox/internal/workspace"
+	"github.com/tomdoesdev/knox/kit/ast"
 )
 
-func InitHandler() error {
-
-	return common.WithEnsuredLocalWorkspace(func(ws *workspace.Workspace, result workspace.InitResult) error {
+func InitHandler() (ast.Node, error) {
+	err := common.WithEnsuredLocalWorkspace(func(ws *workspace.Workspace, result workspace.InitResult) error {
 		currentProject, err := ws.CurrentProject()
 		if err != nil {
 			currentProject = "none"
@@ -30,4 +30,6 @@ func InitHandler() error {
 
 		return nil
 	})
+
+	return nil, err
 }

@@ -2,91 +2,89 @@ package ast
 
 import (
 	"fmt"
-	"strings"
 )
 
-// Renderer interface converts AST nodes to string output
-type Renderer interface {
-	Render(root Node) (string, error)
-}
+// VisitorFunc is called for each node during traversal
+type VisitorFunc func(node Node) error
 
-// RendererFunc allows function-based renderers
-type RendererFunc func(Node) (string, error)
-
-func (rf RendererFunc) Render(root Node) (string, error) {
-	return rf(root)
-}
-
-// HandlerFunc defines the signature for node handlers
-type HandlerFunc func(Node, *strings.Builder) error
-
-// Traverser handles tree traversal with pluggable node handlers
-type Traverser struct {
-	handlers map[string]HandlerFunc
-}
-
-// NewTraverser creates a new traverser with empty handler map
-func NewTraverser() *Traverser {
-	return &Traverser{
-		handlers: make(map[string]HandlerFunc),
+// WithBreadthFirstTraversal visits nodes level by level (queue-based)
+// Children are processed in left-to-right order as they appear in the Children() slice
+func WithBreadthFirstTraversal(root Node, visit VisitorFunc) error {
+	if root == nil {
+		return nil
 	}
-}
+	if visit == nil {
+		return fmt.Errorf("visitor function cannot be nil")
+	}
 
-// Handle registers a handler function for a specific node type
-// Returns the traverser to enable method chaining
-func (t *Traverser) Handle(nodeType string, handler HandlerFunc) *Traverser {
-	t.handlers[nodeType] = handler
-	return t
-}
+	queue := []Node{root}
 
-// Render traverses the AST tree and applies handlers to generate output
-// Uses stack-based depth-first traversal for proper ordering
-func (t *Traverser) Render(root Node) (string, error) {
-	sb := &strings.Builder{}
-	stack := []Node{root}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
 
-	for len(stack) > 0 {
-		// Pop current node from stack
-		current := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
-
-		// Find and apply handler for current node type
-		handler, exists := t.handlers[current.Type()]
-		if !exists {
-			return "", fmt.Errorf("no handler registered for node type: %s", current.Type())
+		// Visit current node
+		if err := visit(current); err != nil {
+			return err
 		}
 
-		// Apply the handler to the current node
-		if err := handler(current, sb); err != nil {
-			return "", fmt.Errorf("handler error for node type %s: %w", current.Type(), err)
-		}
+		// Add children to queue (preserves left-to-right order)
+		queue = append(queue, current.Children()...)
+	}
 
-		// Add children to stack in reverse order for correct depth-first traversal
-		children := current.Children()
-		for i := len(children) - 1; i >= 0; i-- {
-			stack = append(stack, children[i])
+	return nil
+}
+
+// WithPreOrderTraversal visits parent before children (depth-first)
+// Children are processed in left-to-right order
+func WithPreOrderTraversal(root Node, visit VisitorFunc) error {
+	if root == nil {
+		return nil
+	}
+	if visit == nil {
+		return fmt.Errorf("visitor function cannot be nil")
+	}
+
+	return preOrderTraversal(root, visit)
+}
+
+func preOrderTraversal(node Node, visit VisitorFunc) error {
+	// Visit current node first
+	if err := visit(node); err != nil {
+		return err
+	}
+
+	// Then visit children left-to-right
+	for _, child := range node.Children() {
+		if err := preOrderTraversal(child, visit); err != nil {
+			return err
 		}
 	}
 
-	return sb.String(), nil
+	return nil
 }
 
-// HasHandler checks if a handler is registered for the given node type
-func (t *Traverser) HasHandler(nodeType string) bool {
-	_, exists := t.handlers[nodeType]
-	return exists
-}
-
-// RemoveHandler removes a handler for the given node type
-func (t *Traverser) RemoveHandler(nodeType string) {
-	delete(t.handlers, nodeType)
-}
-
-// HandlerTypes returns all registered node types
-func (t *Traverser) HandlerTypes() []string {
-	types := make([]string, 0, len(t.handlers))
-	for nodeType := range t.handlers {
-		types = append(types, nodeType)
+// WithPostOrderTraversal visits children before parent (depth-first)
+// Children are processed in left-to-right order
+func WithPostOrderTraversal(root Node, visit VisitorFunc) error {
+	if root == nil {
+		return nil
 	}
-	return types
+	if visit == nil {
+		return fmt.Errorf("visitor function cannot be nil")
+	}
+
+	return postOrderTraversal(root, visit)
+}
+
+func postOrderTraversal(node Node, visit VisitorFunc) error {
+	// Visit children first
+	for _, child := range node.Children() {
+		if err := postOrderTraversal(child, visit); err != nil {
+			return err
+		}
+	}
+
+	// Then visit current node
+	return visit(node)
 }
