@@ -178,3 +178,92 @@ func (a *Attribute) AsFloat() (float64, error) {
 		return 0.0, ErrTypeAssertionFailed.WithContext("as", "float64")
 	}
 }
+
+// Convenience methods with default values
+func (a *Attribute) AsBoolOr(defaultValue bool) bool {
+	if result, err := a.AsBool(); err == nil {
+		return result
+	}
+	return defaultValue
+}
+
+func (a *Attribute) AsStringOr(defaultValue string) string {
+	if result, err := a.AsString(); err == nil {
+		return result
+	}
+	return defaultValue
+}
+
+func (a *Attribute) AsIntOr(defaultValue int) int {
+	if result, err := a.AsInt(); err == nil {
+		return result
+	}
+	return defaultValue
+}
+
+func (a *Attribute) AsFloatOr(defaultValue float64) float64 {
+	if result, err := a.AsFloat(); err == nil {
+		return result
+	}
+	return defaultValue
+}
+
+// Type checking methods
+func (a *Attribute) IsString() bool {
+	if a.value == nil {
+		return false
+	}
+	switch a.value.(type) {
+	case string, *string:
+		return true
+	case fmt.Stringer:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *Attribute) IsBool() bool {
+	if a.value == nil {
+		return false
+	}
+	switch a.value.(type) {
+	case bool, *bool:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *Attribute) IsInt() bool {
+	if a.value == nil {
+		return false
+	}
+	switch a.value.(type) {
+	case int, *int, int8, *int8, int16, *int16, int32, *int32, int64, *int64:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *Attribute) IsFloat() bool {
+	if a.value == nil {
+		return false
+	}
+	switch a.value.(type) {
+	case float32, *float32, float64, *float64:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *Attribute) IsNumeric() bool {
+	return a.IsInt() || a.IsFloat()
+}
+
+// Raw access for advanced cases
+func (a *Attribute) Value() any {
+	return a.value
+}
