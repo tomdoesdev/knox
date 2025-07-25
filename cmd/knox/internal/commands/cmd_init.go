@@ -10,15 +10,30 @@ import (
 )
 
 func initVisitor(n ast.Node) error {
+	if n.Type() == "result" {
+		//Ignore the root as it has no content
+		return nil
+	}
+	var path string
 	var created bool
 
-	if boolVal, ok := n.GetAttribute("created"); ok {
-		if flag, isBool := boolVal.(bool); isBool {
-			created = flag
+	if attr, ok := n.GetAttribute("created"); ok {
+		v, err := attr.AsBool()
+		if err != nil {
+			return err
 		}
+		created = v
 	}
 
-	fmt.Printf("%s - created=%b path=%s\n", n.Content().String(), created, n.Content().String())
+	if attr, ok := n.GetAttribute("path"); ok {
+		v, err := attr.AsString()
+		if err != nil {
+			return err
+		}
+		path = v
+	}
+
+	fmt.Printf("%s - created=%t path=%s\n", n.Content().String(), created, path)
 	return nil
 }
 

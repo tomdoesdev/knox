@@ -17,21 +17,23 @@ func InitHandler() (ast.Node, error) {
 			currentProject = "none"
 		}
 
+		// Set path and project attributes
+
 		switch result {
 		case workspace.Created:
 			{
-				b.Attr("created", true).
-					Attr("project", currentProject).
-					Node("message").
-					Content(fmt.Sprintf("initialized empty workspace in %s\n", ws.Dir())).
+				b.Node("message").Attr("path", ws.Dir()).Attr("project", currentProject).
+					Attr("created", true).
+					Content(fmt.Sprintf("initialized empty workspace in %s", ws.Dir())).
 					Up().
 					Node("message").
 					Content(fmt.Sprintf("current project: %s\n", currentProject))
 			}
 			break
 		case workspace.Existed:
-			b.Attr("created", true).
-				Attr("project", currentProject).
+
+			b.Node("message").Attr("path", ws.Dir()).Attr("project", currentProject).
+				Attr("created", true).
 				Node("message").
 				Content(fmt.Sprintf("workspace already exists in %s\n", ws.Dir())).
 				Up().
