@@ -4,17 +4,26 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/tomdoesdev/knox/kit/errs"
+)
+
+var (
+	EmptyPathErrCode     errs.Code = "EMPTY_PATH"
+	MakeDirFailedErrCode errs.Code = "MAKE_DIR"
 )
 
 // MkdirAll creates a directory and all necessary parents with the given permissions.
 func MkdirAll(path string, perm os.FileMode) error {
 	if path == "" {
-		return fmt.Errorf("fs: cannot create directory with empty path")
+		return errs.New(EmptyPathErrCode, "fs:MkdirAll: cannot create directory with empty path")
 	}
 
 	err := os.MkdirAll(path, perm)
 	if err != nil {
-		return fmt.Errorf("fs: create directory %q: %w", path, err)
+		return errs.Wrap(err, MakeDirFailedErrCode, "fs: create directory failed").
+			WithPath(path).
+			WithContext("perm", perm)
 	}
 	return nil
 }
