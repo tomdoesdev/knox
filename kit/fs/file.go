@@ -62,7 +62,7 @@ func Move(src, dst string) error {
 }
 
 // Touch creates an empty file or updates the timestamp of an existing file.
-func Touch(path string) error {
+func Touch(path string, perm os.FileMode) error {
 	if path == "" {
 		return fmt.Errorf("fs: cannot touch file with empty path")
 	}
@@ -71,7 +71,7 @@ func Touch(path string) error {
 	err := os.Chtimes(path, now, now)
 	if err != nil {
 		// File doesn't exist, create it
-		file, createErr := os.OpenFile(path, os.O_CREATE, 0644)
+		file, createErr := os.OpenFile(path, os.O_CREATE, perm)
 		if createErr != nil {
 			return fmt.Errorf("fs: touch file %q: %w", path, createErr)
 		}

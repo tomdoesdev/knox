@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tomdoesdev/knox/cmd/knox/internal/commands"
+	"github.com/tomdoesdev/knox/cmd/knox/internal"
 	"github.com/tomdoesdev/knox/kit/log"
 	"github.com/urfave/cli/v3"
 )
@@ -17,11 +17,7 @@ func main() {
 		Name:  "knox",
 		Usage: "local development secrets manager",
 		Commands: []*cli.Command{
-			commands.NewInitCommand(),
-			commands.NewNewCommand(),
-			commands.NewProjectCommand(),
-			commands.NewLinkCommand(),
-			commands.NewStatusCommand(),
+			internal.NewInitCommand(),
 		},
 	}
 
