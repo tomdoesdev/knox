@@ -1,15 +1,17 @@
 package fs
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 // TempDir creates a temporary directory and returns its path along with a cleanup function.
 func TempDir(pattern string) (string, func(), error) {
 	dir, err := os.MkdirTemp("", pattern)
 	if err != nil {
-		return "", nil, fmt.Errorf("fs: create temp directory: %w", err)
+		return "", nil, errs.Wrap(err, ECodeTempFailure, "create temp directory failed").
+			WithOperation("mkdtemp")
 	}
 
 	cleanup := func() {
@@ -23,7 +25,8 @@ func TempDir(pattern string) (string, func(), error) {
 func TempFile(pattern string) (*os.File, func(), error) {
 	file, err := os.CreateTemp("", pattern)
 	if err != nil {
-		return nil, nil, fmt.Errorf("fs: create temp file: %w", err)
+		return nil, nil, errs.Wrap(err, ECodeTempFailure, "create temp file failed").
+			WithOperation("mktemp")
 	}
 
 	cleanup := func() {

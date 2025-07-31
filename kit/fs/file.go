@@ -1,45 +1,56 @@
 package fs
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"time"
+
+	"github.com/tomdoesdev/knox/kit/errs"
 )
 
 // Copy copies a file from src to dst, preserving permissions.
 func Copy(src, dst string) error {
 	if src == "" {
-		return fmt.Errorf("fs: cannot copy from empty source path")
+		return errs.New(ECodeInvalidPath, "cannot copy from empty source path")
 	}
 	if dst == "" {
-		return fmt.Errorf("fs: cannot copy to empty destination path")
+		return errs.New(ECodeInvalidPath, "cannot copy to empty destination path")
 	}
 
 	srcFile, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("fs: open source file %q: %w", src, err)
+		return errs.Wrap(err, ECodeFileReadFailure, "open source file failed").
+			WithPath(src).
+			WithOperation("open")
 	}
 	defer srcFile.Close()
 
 	srcInfo, err := srcFile.Stat()
 	if err != nil {
-		return fmt.Errorf("fs: stat source file %q: %w", src, err)
+		return errs.Wrap(err, ECodeFileReadFailure, "stat source file failed").
+			WithPath(src).
+			WithOperation("stat")
 	}
 
 	if !srcInfo.Mode().IsRegular() {
-		return fmt.Errorf("fs: source %q is not a regular file", src)
+		return errs.New(ECodeInvalidPath, "source is not a regular file").
+			WithPath(src)
 	}
 
 	dstFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, srcInfo.Mode())
 	if err != nil {
-		return fmt.Errorf("fs: create destination file %q: %w", dst, err)
+		return errs.Wrap(err, ECodeFileWriteFailure, "create destination file failed").
+			WithPath(dst).
+			WithOperation("create")
 	}
 	defer dstFile.Close()
 
 	_, err = io.Copy(dstFile, srcFile)
 	if err != nil {
-		return fmt.Errorf("fs: copy data from %q to %q: %w", src, dst, err)
+		return errs.Wrap(err, ECodeFileMoveFailure, "copy data failed").
+			WithContext("src", src).
+			WithContext("dst", dst).
+			WithOperation("copy")
 	}
 
 	return nil
@@ -48,15 +59,18 @@ func Copy(src, dst string) error {
 // Move moves/renames a file from src to dst.
 func Move(src, dst string) error {
 	if src == "" {
-		return fmt.Errorf("fs: cannot move from empty source path")
+		return errs.New(ECodeInvalidPath, "cannot move from empty source path")
 	}
 	if dst == "" {
-		return fmt.Errorf("fs: cannot move to empty destination path")
+		return errs.New(ECodeInvalidPath, "cannot move to empty destination path")
 	}
 
 	err := os.Rename(src, dst)
 	if err != nil {
-		return fmt.Errorf("fs: move %q to %q: %w", src, dst, err)
+		return errs.Wrap(err, ECodeFileMoveFailure, "move file failed").
+			WithContext("src", src).
+			WithContext("dst", dst).
+			WithOperation("move")
 	}
 	return nil
 }
@@ -64,7 +78,7 @@ func Move(src, dst string) error {
 // Touch creates an empty file or updates the timestamp of an existing file.
 func Touch(path string, perm os.FileMode) error {
 	if path == "" {
-		return fmt.Errorf("fs: cannot touch file with empty path")
+		return errs.New(ECodeInvalidPath, "cannot touch file with empty path")
 	}
 
 	now := time.Now()
@@ -73,7 +87,9 @@ func Touch(path string, perm os.FileMode) error {
 		// File doesn't exist, create it
 		file, createErr := os.OpenFile(path, os.O_CREATE, perm)
 		if createErr != nil {
-			return fmt.Errorf("fs: touch file %q: %w", path, createErr)
+			return errs.Wrap(createErr, ECodeFileWriteFailure, "touch file failed").
+				WithPath(path).
+				WithOperation("touch")
 		}
 		file.Close()
 	}
@@ -83,25 +99,57 @@ func Touch(path string, perm os.FileMode) error {
 // ReadFile reads the contents of a file.
 func ReadFile(path string) ([]byte, error) {
 	if path == "" {
-		return nil, fmt.Errorf("fs: cannot read file with empty path")
+		return nil, errs.New(ECodeInvalidPath, "cannot read file with empty path")
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("fs: read file %q: %w", path, err)
+		return nil, errs.Wrap(err, ECodeFileReadFailure, "read file failed").
+			WithPath(path).
+			WithOperation("read")
 	}
 	return data, nil
 }
 
-// WriteFile writes data to a file with the given permissions.
+/*
+WriteFile writes data to a file with the given permissions.
+
+If the file exists it results in an ECodeEntityExists error.
+
+Returns:
+  - ECodeEntityExists
+  - ECodeInvalidPath
+  - ECodeFileWriteFailure
+*/
 func WriteFile(path string, data []byte, perm os.FileMode) error {
 	if path == "" {
-		return fmt.Errorf("fs: cannot write file with empty path")
+		return errs.New(ECodeInvalidPath, "cannot write file with empty path")
+	}
+
+	if IsFile(path) {
+		return errs.New(ECodeEntityExists, "cannot write to existing file").
+			WithPath(path).WithContext("hint", "use 'OverwriteFile' function")
 	}
 
 	err := os.WriteFile(path, data, perm)
 	if err != nil {
-		return fmt.Errorf("fs: write file %q: %w", path, err)
+		return errs.Wrap(err, ECodeFileWriteFailure, "write file failed").
+			WithPath(path).
+			WithOperation("write")
+	}
+	return nil
+}
+
+func OverwriteFile(path string, data []byte, perm os.FileMode) error {
+	if path == "" {
+		return errs.New(ECodeInvalidPath, "cannot write file with empty path")
+	}
+
+	err := os.WriteFile(path, data, perm)
+	if err != nil {
+		return errs.Wrap(err, ECodeFileWriteFailure, "write file failed").
+			WithPath(path).
+			WithOperation("write")
 	}
 	return nil
 }

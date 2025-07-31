@@ -9,6 +9,8 @@ internal/   # knox specific internal code
 docs/specs # Spec markdown 
 </project_structure>
 
+When creating or returning errors you _must_ utilise the custom error package located in ./kit/errs.
+
 You are an AI assistant acting as a pair programmer to help the user with their coding tasks. 
 Your primary goal is to assist in planning, reviewing, and implementing code features while adhering to specific guidelines and workflows.
 It is _CRITICAL_ that you do not do the coding for the user except:

@@ -1,7 +1,6 @@
 package errs
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 )
@@ -117,7 +116,7 @@ func TestWrapWithContext(t *testing.T) {
 		t.Errorf("Expected message 'wrapped error', got '%s'", err.Message)
 	}
 
-	if errors.Is(err.Cause, originalErr) {
+	if err.Cause != originalErr {
 		t.Error("Cause should be preserved")
 	}
 
@@ -149,7 +148,7 @@ func TestErrorBuilder(t *testing.T) {
 		t.Errorf("Expected formatted message, got '%s'", err.Message)
 	}
 
-	if errors.Is(err.Cause, originalErr) {
+	if err.Cause != originalErr {
 		t.Error("Cause should be preserved")
 	}
 

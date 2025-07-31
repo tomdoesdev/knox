@@ -101,7 +101,7 @@ func GetCode(err error) Code {
 }
 
 // WrapWithContext wraps an existing error with structured error context and additional context pairs
-// Context pairs should be provided as key-value pairs: "key1", value1, "key2", value2, ...
+// should be provided as key-value pairs: "key1", value1, "key2", value2, ...
 func WrapWithContext(err error, code Code, message string, contextPairs ...interface{}) *Error {
 	structuredErr := &Error{
 		Code:    code,
